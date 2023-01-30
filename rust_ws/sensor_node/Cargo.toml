@@ -6,3 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.63"
+rand = "0.8.5"
+tokio = {version = "1.24.2", features = ["full"]}
+log = "0.4.17"
+simple-log = "1.6.0"
+anyhow = "1.0.68"
+paho-mqtt = "0.12.0"

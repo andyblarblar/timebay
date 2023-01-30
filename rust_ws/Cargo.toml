@@ -1,7 +1,6 @@
 [workspace]
 
 members = [
-    "gateway",
     "sensor_node",
     "tf-luna"
 ]
