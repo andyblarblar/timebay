@@ -1,26 +1,43 @@
+mod application;
+mod dist_sensor;
+mod error;
+mod mqtt;
 mod sensor_connection;
-mod types;
-use paho_mqtt::{ConnectOptionsBuilder, CreateOptionsBuilder, Message};
+
+use crate::application::ApplicationContext;
+use crate::mqtt::MqttClient;
+use std::time::Duration;
+use tokio::join;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     simple_log::console("debug").unwrap();
 
-    let sensor = sensor_connection::create_sensor().await;
+    let node_id = 0; //TODO get from env var
 
-    let client = CreateOptionsBuilder::new()
-        .client_id("node1") //TODO Use env var
-        .server_uri("tcp://localhost:1338")
-        .create_client()?;
+    let sensor_fut = sensor_connection::create_sensor();
 
-    // Set LWT
-    let mut conn_opt = ConnectOptionsBuilder::default();
-    let lwt = Message::new("/disconnect", [1], 2); //TODO change payload to node #
-    conn_opt.will_message(lwt);
+    // Future that keeps polling until we connect to mqtt
+    let client_fut = async {
+        loop {
+            if let Ok(conn) = MqttClient::connect(node_id, "tcp://localhost:1338").await {
+                log::info!("Successfully connected to broker");
+                break conn;
+            }
 
-    client.connect(conn_opt.finalize()).await?;
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    };
 
-    //TODO pub connection and enter sensor loop
+    log::info!("Waiting for mqtt and sensor to connect...");
+    let (sensor, client) = join!(sensor_fut, client_fut);
+    log::info!("Sensor and mqtt both ready!");
+
+    // Zero sensor
+    let mut app = ApplicationContext::new(sensor, 10);
+    log::debug!("Set zero to {}mm", app.zero().await);
+
+    //TODO enter sensor loop
 
     Ok(())
 }

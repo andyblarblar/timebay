@@ -18,7 +18,7 @@ impl DistanceReading {
 #[async_trait]
 pub trait DistanceSensor {
     /// Gets a distance reading.
-    async fn get_reading(&mut self) -> DistanceReading;
+    async fn get_reading(&mut self) -> DistanceReading;//TODO add result here
 }
 
 /// Reads random distance values between two bounds.
