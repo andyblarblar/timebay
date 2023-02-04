@@ -1,6 +1,22 @@
 use async_trait::async_trait;
 use rand::{thread_rng, RngCore};
 use std::cmp::max;
+use std::io;
+use thiserror::Error;
+
+/// A sensor capable of reading distance values.
+#[async_trait]
+pub trait DistanceSensor {
+    /// Gets a distance reading.
+    async fn get_reading(&mut self) -> Result<DistanceReading, SensorError>;
+}
+
+/// Errors from interacting with the sensor
+#[derive(Error, Debug)]
+pub enum SensorError {
+    #[error(transparent)]
+    IOError(#[from] io::Error),
+}
 
 /// A distance reading
 pub struct DistanceReading {
@@ -12,13 +28,6 @@ impl DistanceReading {
     pub fn new(dist: u32) -> Self {
         Self { dist }
     }
-}
-
-/// A sensor capable of reading distance values.
-#[async_trait]
-pub trait DistanceSensor {
-    /// Gets a distance reading.
-    async fn get_reading(&mut self) -> DistanceReading;//TODO add result here
 }
 
 /// Reads random distance values between two bounds.
@@ -36,7 +45,10 @@ impl MockDistanceReader {
 
 #[async_trait]
 impl DistanceSensor for MockDistanceReader {
-    async fn get_reading(&mut self) -> DistanceReading {
-        DistanceReading::new(max(thread_rng().next_u32() % self.max, self.min))
+    async fn get_reading(&mut self) -> Result<DistanceReading, SensorError> {
+        Ok(DistanceReading::new(max(
+            thread_rng().next_u32() % self.max,
+            self.min,
+        )))
     }
 }
