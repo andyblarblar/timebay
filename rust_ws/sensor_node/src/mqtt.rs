@@ -4,6 +4,7 @@ use paho_mqtt::{AsyncClient, AsyncReceiver, ConnectOptionsBuilder, CreateOptions
 use timebay_common::messages::MqttMessage::{Connection, Disconnection};
 use timebay_common::messages::{ConnectionMessage, DisconnectionMessage, MqttMessage, TOPICS};
 
+/// Mqtt client abstraction for sensor nodes
 pub struct MqttClient {
     cli: AsyncClient,
     node_id: u16,
@@ -37,19 +38,31 @@ impl MqttClient {
         let msg = Connection(ConnectionMessage::new(node_id));
         client.publish(msg.try_into()?).await?;
 
+        //TODO make sure we have auto reconnect on
+
         Ok(Self {
             cli: client,
             node_id,
             stream,
         })
     }
-    
-    /// Spins until an mqtt message is received. 
+
+    /// Spins until an mqtt message is received.
     pub async fn recv_mqtt_msg(&mut self) -> Result<MqttMessage, Error> {
         if let Some(msg) = self.stream.recv().await.unwrap() {
             Ok(msg.try_into()?)
         } else {
             Err(MqttDisconnect)
         }
+    }
+
+    /// Publishes a mqtt message.
+    pub async fn publish(&mut self, msg: MqttMessage) -> Result<(), Error> {
+        self.cli.publish(msg.try_into()?).await?;
+        Ok(())
+    }
+
+    pub fn node_id(&self) -> u16 {
+        self.node_id
     }
 }

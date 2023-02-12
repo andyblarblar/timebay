@@ -1,13 +1,14 @@
 use crate::application::ApplicationContext;
-use crate::dist_sensor::DistanceSensor;
+use crate::dist_sensor::{DistanceReading, DistanceSensor};
 use crate::error::Error;
 use crate::mqtt::MqttClient;
-use timebay_common::messages::MqttMessage;
+use std::time::{SystemTime, UNIX_EPOCH};
+use timebay_common::messages::{DetectionMessage, MqttMessage};
 
 /// Handles an incoming mqtt message
 pub async fn handle_mqtt_msg<T: DistanceSensor>(
     msg: MqttMessage,
-    client: &mut MqttClient,
+    _client: &mut MqttClient,
     ctx: &mut ApplicationContext<T>,
 ) -> Result<(), Error> {
     match msg {
@@ -22,8 +23,21 @@ pub async fn handle_mqtt_msg<T: DistanceSensor>(
 /// Handles a trigger
 pub async fn handle_trigger<T: DistanceSensor>(
     client: &mut MqttClient,
-    ctx: &mut ApplicationContext<T>,
+    _ctx: &mut ApplicationContext<T>,
+    dist: DistanceReading,
 ) -> Result<(), Error> {
-    todo!("Pub to triggered topic")
-    // Note that we will need to sleep for a few seconds after a trigger to debounce
+    // Publish a detection message
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Should never be earlier than epoch");
+    let msg = MqttMessage::Detection(DetectionMessage::new(
+        client.node_id(),
+        dist.dist,
+        now.as_secs(),
+        now.subsec_nanos(),
+    ));
+
+    client.publish(msg).await?;
+
+    Ok(())
 }

@@ -24,6 +24,6 @@
 - Format:
   - node_id: int - Node id of triggered node
   - stamp: tv - unix stamp of the detection
-  - dist: int - distance in mm the detection occured at
+  - dist: int - distance in mm the detection occurred at
 
 TODO other sensor types (IMU ect)? 

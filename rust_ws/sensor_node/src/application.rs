@@ -1,5 +1,7 @@
-use crate::dist_sensor::{DistanceSensor, SensorError};
+use crate::dist_sensor::{DistanceReading, DistanceSensor, SensorError};
+use std::time::Instant;
 
+/// Sensor node specific application state
 pub struct ApplicationContext<T>
 where
     T: DistanceSensor,
@@ -9,6 +11,9 @@ where
     zero: u32,
     /// Delta off of zero to count as a trigger, mm
     threshold: u32,
+    /// Last time we detected a car (Monotonic). Used to prevent the sensor from triggering over
+    /// and over again if the vehicle is slowly passing.
+    last_detection: Instant,
 }
 
 impl<T: DistanceSensor> ApplicationContext<T> {
@@ -21,6 +26,7 @@ impl<T: DistanceSensor> ApplicationContext<T> {
             sensor,
             zero: default_zero,
             threshold,
+            last_detection: Instant::now(),
         }
     }
 
@@ -32,7 +38,7 @@ impl<T: DistanceSensor> ApplicationContext<T> {
             avg += self.sensor.get_reading().await?.dist;
         }
 
-        let zero = avg / 10;
+        let zero = avg / 100;
         self.zero = zero;
 
         log::debug!("Set zero to {}mm", zero);
@@ -41,13 +47,23 @@ impl<T: DistanceSensor> ApplicationContext<T> {
     }
 
     /// Spins until the sensor gets a reading that it considers to be a vehicle passing.
-    pub async fn wait_for_trigger(&mut self) -> Result<(), SensorError> {
+    pub async fn wait_for_trigger(&mut self) -> Result<DistanceReading, SensorError> {
         loop {
             let reading = self.sensor.get_reading().await?;
 
             if should_trigger(self.zero, self.threshold, reading.dist) {
+                /* Prevent the sensor from triggering on a slow passing car over and over again by enforcing
+                that each successful trigger must be followed by a 200ms period of no triggers before triggering again */
+                let time_since_last_detection = Instant::now().duration_since(self.last_detection);
+                self.last_detection = Instant::now();
+                if time_since_last_detection.as_millis() < 200 {
+                    log::debug!("Rejecting trigger due to debounce");
+                    continue;
+                }
+
                 log::debug!("Triggered!");
-                return Ok(());
+
+                return Ok(reading);
             }
         }
     }

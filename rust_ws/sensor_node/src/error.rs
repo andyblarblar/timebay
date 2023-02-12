@@ -1,3 +1,4 @@
+use std::time::SystemTimeError;
 use crate::dist_sensor::SensorError;
 use thiserror::Error;
 
@@ -13,4 +14,6 @@ pub enum Error {
     SerializationError(#[from] timebay_common::error::ConversionError),
     #[error(transparent)]
     SensorErr(#[from] SensorError),
+    #[error("System clock rolled back during computation")]
+    TimeReset(#[from] SystemTimeError)
 }

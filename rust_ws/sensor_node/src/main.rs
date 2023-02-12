@@ -25,7 +25,8 @@ async fn main() -> anyhow::Result<()> {
         // Future that keeps polling until we connect to mqtt
         let client_fut = async {
             loop {
-                if let Ok(conn) = MqttClient::connect(node_id, "mqtt://localhost:1883").await { //TODO set real broker ID
+                if let Ok(conn) = MqttClient::connect(node_id, "mqtt://localhost:1883").await {
+                    //TODO set real broker ID
                     log::info!("Successfully connected to broker");
                     break conn;
                 }
@@ -44,14 +45,15 @@ async fn main() -> anyhow::Result<()> {
         let rcv_fut = client.recv_mqtt_msg();
         let trg_fut = app.wait_for_trigger();
 
+        // Accept new messages and wait for sensor concurrently (branches are mutually exclusive)
         tokio::select! {
             res = rcv_fut => {
-                let msg = res?;
+                let msg = res?; //TODO make sure the docker container has auto-bringup so these unwraps are recoverable
                 handle_mqtt_msg(msg, &mut client, &mut app).await?;
             },
             res = trg_fut => {
-                res?;
-                handle_trigger(&mut client, &mut app).await?;
+                let dist = res?;
+                handle_trigger(&mut client, &mut app, dist).await?;
             }
         }
     }

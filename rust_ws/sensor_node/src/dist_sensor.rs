@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use rand::{thread_rng, RngCore};
 use std::cmp::max;
 use std::io;
+use std::time::Duration;
 use thiserror::Error;
 
 /// A sensor capable of reading distance values.
@@ -46,6 +47,7 @@ impl MockDistanceReader {
 #[async_trait]
 impl DistanceSensor for MockDistanceReader {
     async fn get_reading(&mut self) -> Result<DistanceReading, SensorError> {
+        tokio::time::sleep(Duration::from_millis(100)).await;
         Ok(DistanceReading::new(max(
             thread_rng().next_u32() % self.max,
             self.min,
