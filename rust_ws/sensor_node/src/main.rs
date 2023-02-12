@@ -25,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
         // Future that keeps polling until we connect to mqtt
         let client_fut = async {
             loop {
-                if let Ok(conn) = MqttClient::connect(node_id, "mqtt://localhost:1883").await {
+                if let Ok(conn) = MqttClient::connect(node_id, "mqtt://localhost:1883").await { //TODO set real broker ID
                     log::info!("Successfully connected to broker");
                     break conn;
                 }
@@ -39,7 +39,6 @@ async fn main() -> anyhow::Result<()> {
 
     // Zero sensor
     let mut app = ApplicationContext::new(sensor, 10_000, 1000);
-    log::debug!("Set zero to {}mm", app.zero().await?);
 
     loop {
         let rcv_fut = client.recv_mqtt_msg();

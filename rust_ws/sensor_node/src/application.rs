@@ -35,6 +35,8 @@ impl<T: DistanceSensor> ApplicationContext<T> {
         let zero = avg / 10;
         self.zero = zero;
 
+        log::debug!("Set zero to {}mm", zero);
+
         Ok(zero)
     }
 
@@ -44,6 +46,7 @@ impl<T: DistanceSensor> ApplicationContext<T> {
             let reading = self.sensor.get_reading().await?;
 
             if should_trigger(self.zero, self.threshold, reading.dist) {
+                log::debug!("Triggered!");
                 return Ok(());
             }
         }
@@ -58,7 +61,7 @@ fn should_trigger(zero: u32, threshold: u32, reading: u32) -> bool {
 
 #[cfg(test)]
 mod test {
-    use crate::application::{should_trigger};
+    use crate::application::should_trigger;
 
     #[test]
     fn should_trigger_works() {

@@ -24,5 +24,6 @@ pub async fn handle_trigger<T: DistanceSensor>(
     client: &mut MqttClient,
     ctx: &mut ApplicationContext<T>,
 ) -> Result<(), Error> {
-  todo!("Pub to triggered topic")
+    todo!("Pub to triggered topic")
+    // Note that we will need to sleep for a few seconds after a trigger to debounce
 }
