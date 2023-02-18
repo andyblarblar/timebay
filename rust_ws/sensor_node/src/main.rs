@@ -18,15 +18,20 @@ async fn main() -> anyhow::Result<()> {
     log::info!("Waiting for mqtt and sensor to connect...");
 
     let (sensor, mut client) = {
-        let node_id = 1; //TODO get from env var
+        // Get broker and node id from env vars
+        let node_id = std::env::var("NODE_ID")
+            .unwrap_or_else(|_| "1".to_string())
+            .parse()?;
+        let server_host = std::env::var("BROKER_HOST").unwrap_or_else(|_| "localhost".to_string());
 
         let sensor_fut = sensor_connection::create_sensor();
 
         // Future that keeps polling until we connect to mqtt
         let client_fut = async {
             loop {
-                if let Ok(conn) = MqttClient::connect(node_id, "mqtt://localhost:1883").await {
-                    //TODO set real broker ID
+                if let Ok(conn) =
+                    MqttClient::connect(node_id, &format!("mqtt://{}:1883", &server_host)).await
+                {
                     log::info!("Successfully connected to broker");
                     break conn;
                 }
@@ -48,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         // Accept new messages and wait for sensor concurrently (branches are mutually exclusive)
         tokio::select! {
             res = rcv_fut => {
-                let msg = res?; //TODO make sure the docker container has auto-bringup so these unwraps are recoverable
+                let msg = res?;
                 handle_mqtt_msg(msg, &mut client, &mut app).await?;
             },
             res = trg_fut => {
@@ -57,6 +62,4 @@ async fn main() -> anyhow::Result<()> {
             }
         }
     }
-
-    Ok(())
 }
