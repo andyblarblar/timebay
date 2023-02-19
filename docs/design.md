@@ -10,6 +10,8 @@ cross compiling ect.
 - Sensor threshold should always be > 160mm, since the sensor has +-16cm accuracy at worst
   - Note the 20cm blind spot, although this shouldn't matter much because the vehicle should never be that close anyhow.
 - The dockerfile should be cross compilable to other archs, like MIPS
+- While the TF-Luna does have an object detection mode that more or less eliminates the need for the dist sensor, I use
+the polling mode anyway, so we can swap to something like an ultrasonic sensor in the future with no code changes.
 
 ## Networking choices
 - Choice of layer 1:

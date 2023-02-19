@@ -12,7 +12,7 @@ ENV NODE_ID=0
 ENV BROKER_HOST=gateway
 
 # Install networking utils
-RUN apt-get update && apt-get install -y iw iproute2 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y iw iproute2 dhcpcd5 && rm -rf /var/lib/apt/lists/*
 
 # Copy the executable
 COPY --from=builder /usr/local/cargo/bin/sensor_node /usr/local/bin/sensor_node

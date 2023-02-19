@@ -4,12 +4,13 @@
 
 ifacename="wlxec086b180ec6" # TODO make this accurate for Pis
 
-# Setup mesh
+# Setup mesh, ip will be set by dhcpcd
 ip link set down $ifacename
 iw dev $ifacename set type mesh
 iw dev $ifacename set meshid timebay
 ip link set up $ifacename
 
-# TODO add static ips or dhcp here
+# Set default route to gateway node
+ip route add default 192.168.0.1/24 dev $ifacename
 
 sensor_node

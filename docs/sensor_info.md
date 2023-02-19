@@ -31,4 +31,3 @@ This document holds some notes on the TF-Luna laser rangefinder
   - gnd
   - none
   - none
-- 
