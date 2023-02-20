@@ -1,19 +1,26 @@
-use iced::{executor, Application, Command, Element, Renderer, Subscription, Theme};
+use crate::mqtt::MqttClient;
+use derive_more::IsVariant;
+use iced::widget::{row, Text};
+use iced::{executor, Application, Command, Element, Renderer, Theme};
 use std::collections::HashSet;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-#[derive(Debug)]
+#[derive(Debug, IsVariant)]
 pub enum AppState {
     /// Connecting to MQTT
     Connecting,
     /// Connected to MQTT
-    Connected,
+    Connected { cli: Arc<Mutex<MqttClient>> },
 }
 
 #[derive(Debug)]
 pub enum AppMessage {
     /// Transition the system state
     StateChange(AppState),
+    /// Sensor node connected
     ConnectNode(u16),
+    /// Sensor node disconnected
     DisconnectNode(u16),
 }
 
@@ -22,7 +29,7 @@ pub struct App {
     state: AppState,
     /// Connected sensor node ids
     connected_nodes: HashSet<u16>,
-    //TODO make run timings struct
+    //TODO make run timings struct and view, then mqtt sub
 }
 
 impl Application for App {
@@ -37,7 +44,27 @@ impl Application for App {
                 state: AppState::Connecting,
                 connected_nodes: HashSet::new(),
             },
-            Command::none(), //TODO connect here
+            // Loop until we connect to server
+            Command::perform(
+                async {
+                    let cli = loop {
+                        let cli = MqttClient::connect("mqtt://localhost:1883").await;
+
+                        if let Err(err) = cli {
+                            log::error!("Failed to connect to server with: {}", err);
+                            continue;
+                        }
+
+                        break cli.unwrap();
+                    };
+
+                    log::info!("Connected to broker!");
+                    AppMessage::StateChange(AppState::Connected {
+                        cli: Arc::new(Mutex::new(cli)),
+                    })
+                },
+                |f| f,
+            ),
         )
     }
 
@@ -48,7 +75,6 @@ impl Application for App {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             AppMessage::StateChange(state) => {
-                log::info!("Connected to broker!");
                 self.state = state;
             }
             AppMessage::ConnectNode(id) => {
@@ -67,10 +93,9 @@ impl Application for App {
     }
 
     fn view(&self) -> Element<'_, Self::Message, Renderer<Self::Theme>> {
-        todo!("Make widgets for run timings and then make them here")
-    }
-
-    fn subscription(&self) -> Subscription<Self::Message> {
-        todo!("Make sub that relays mqtt messages")
+        match &self.state {
+            AppState::Connecting => row![Text::new("Connecting...")].into(),
+            AppState::Connected { cli } => row![Text::new("HI!")].into(),
+        }
     }
 }

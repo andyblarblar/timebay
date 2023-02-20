@@ -1,9 +1,16 @@
 use crate::error::Error;
+use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 
 /// Mqtt client abstraction for sensor nodes
 pub struct MqttClient {
     cli: timebay_common::mqttclient::MqttClient,
+}
+
+impl Debug for MqttClient {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
 }
 
 // Deref to client to emulate "inheritance"
