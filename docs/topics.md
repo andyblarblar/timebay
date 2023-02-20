@@ -1,6 +1,6 @@
 # Topics
 
-## /connection
+## /connect
 - Use: Published to by nodes when they (re)connect with the broker.
 - Qos: Exactly Once
 - Format:

@@ -1,65 +1,57 @@
-use crate::error::Error;
-use crate::error::Error::MqttDisconnect;
-use paho_mqtt::{AsyncClient, AsyncReceiver, ConnectOptionsBuilder, CreateOptionsBuilder, Message};
+use std::ops::{Deref, DerefMut};
+
+use paho_mqtt::ConnectOptionsBuilder;
+
 use timebay_common::messages::MqttMessage::{Connection, Disconnection};
-use timebay_common::messages::{ConnectionMessage, DisconnectionMessage, MqttMessage, TOPICS};
+use timebay_common::messages::{ConnectionMessage, DisconnectionMessage};
+
+use crate::error::Error;
 
 /// Mqtt client abstraction for sensor nodes
 pub struct MqttClient {
-    cli: AsyncClient,
+    cli: timebay_common::mqttclient::MqttClient,
     node_id: u16,
-    stream: AsyncReceiver<Option<Message>>,
+}
+
+// Deref to client to emulate "inheritance"
+impl Deref for MqttClient {
+    type Target = timebay_common::mqttclient::MqttClient;
+
+    fn deref(&self) -> &Self::Target {
+        &self.cli
+    }
+}
+
+impl DerefMut for MqttClient {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.cli
+    }
 }
 
 impl MqttClient {
-    /// Connects to MQTT broker, setting LWT and sending a connected message.
     pub async fn connect(node_id: u16, server_id: &str) -> Result<Self, Error> {
-        let mut client = CreateOptionsBuilder::new()
-            .client_id(format!("node{node_id}"))
-            .server_uri(server_id)
-            .create_client()?;
+        // Topics to sub to
+        let subs = ["/zero"];
 
         // Set LWT
         let mut conn_opt = ConnectOptionsBuilder::default();
         let msg = Disconnection(DisconnectionMessage::new(node_id));
         conn_opt.will_message(msg.try_into()?);
 
-        client.connect(conn_opt.finalize()).await?;
-
-        // Async sub stream
-        let stream = client.get_stream(10);
-
-        // Sub to topics
-        let topics = ["/zero"];
-        let qoss: Vec<_> = topics.iter().map(|t| TOPICS[t]).collect();
-        client.subscribe_many(&topics, &qoss);
+        // Connect to broker
+        let mut cli = timebay_common::mqttclient::MqttClient::connect(
+            server_id,
+            &format!("node{}", node_id),
+            &subs,
+            Some(conn_opt.finalize()),
+        )
+        .await?;
 
         // Pub connected message
         let msg = Connection(ConnectionMessage::new(node_id));
-        client.publish(msg.try_into()?).await?;
+        cli.publish(msg).await?;
 
-        //TODO make sure we have auto reconnect on
-
-        Ok(Self {
-            cli: client,
-            node_id,
-            stream,
-        })
-    }
-
-    /// Spins until an mqtt message is received.
-    pub async fn recv_mqtt_msg(&mut self) -> Result<MqttMessage, Error> {
-        if let Some(msg) = self.stream.recv().await.unwrap() {
-            Ok(msg.try_into()?)
-        } else {
-            Err(MqttDisconnect)
-        }
-    }
-
-    /// Publishes a mqtt message.
-    pub async fn publish(&mut self, msg: MqttMessage) -> Result<(), Error> {
-        self.cli.publish(msg.try_into()?).await?;
-        Ok(())
+        Ok(Self { cli, node_id })
     }
 
     pub fn node_id(&self) -> u16 {
