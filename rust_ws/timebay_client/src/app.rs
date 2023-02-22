@@ -1,7 +1,7 @@
 use crate::mqtt::MqttClient;
 use derive_more::IsVariant;
 use iced::widget::{row, Text};
-use iced::{executor, Application, Command, Element, Renderer, Theme};
+use iced::{executor, Application, Command, Element, Renderer, Theme, Subscription};
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -97,5 +97,9 @@ impl Application for App {
             AppState::Connecting => row![Text::new("Connecting...")].into(),
             AppState::Connected { cli } => row![Text::new("HI!")].into(),
         }
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+
     }
 }

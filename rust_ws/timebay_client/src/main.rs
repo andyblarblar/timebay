@@ -5,6 +5,7 @@ use simplelog::{ColorChoice, CombinedLogger, TerminalMode};
 mod app;
 mod error;
 mod mqtt;
+mod mqttsub;
 
 fn main() {
     CombinedLogger::init(vec![simplelog::TermLogger::new(

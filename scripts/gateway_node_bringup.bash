@@ -8,6 +8,7 @@ ifacename="wlxec086b180ec6" # TODO make this accurate for Pis
 ip link set down $ifacename
 iw dev $ifacename set type mesh
 iw dev $ifacename set meshid timebay
+iw dev $ifacename set channel 1 HT40+
 ip link set up $ifacename
 
 # Set mesh ip
