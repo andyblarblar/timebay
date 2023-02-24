@@ -8,12 +8,20 @@ mod sensor_connection;
 use crate::application::ApplicationContext;
 use crate::handlers::{handle_mqtt_msg, handle_trigger};
 use crate::mqtt::MqttClient;
+use log::LevelFilter::Debug;
+use simplelog::{ColorChoice, CombinedLogger, TerminalMode};
 use std::time::Duration;
 use tokio::join;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    simple_log::console("debug").unwrap();
+    CombinedLogger::init(vec![simplelog::TermLogger::new(
+        Debug,
+        simplelog::ConfigBuilder::default().build(),
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    )])
+    .unwrap();
 
     log::info!("Waiting for mqtt and sensor to connect...");
 

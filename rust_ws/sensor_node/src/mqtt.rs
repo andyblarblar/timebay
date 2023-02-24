@@ -39,7 +39,7 @@ impl MqttClient {
         conn_opt.will_message(msg.try_into()?);
 
         // Connect to broker
-        let mut cli = timebay_common::mqttclient::MqttClient::connect(
+        let cli = timebay_common::mqttclient::MqttClient::connect(
             server_id,
             &format!("node{}", node_id),
             &subs,

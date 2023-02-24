@@ -1,27 +1,36 @@
 use crate::mqtt::MqttClient;
+use crate::mqttsub::mqtt_subscription;
 use derive_more::IsVariant;
-use iced::widget::{row, Text};
-use iced::{executor, Application, Command, Element, Renderer, Theme, Subscription};
+use iced::widget::{row, Button, Text};
+use iced::{executor, Application, Command, Element, Renderer, Subscription, Theme};
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::sync::Mutex;
+use timebay_common::messages::{
+    ConnectionMessage, DetectionMessage, DisconnectionMessage, MqttMessage,
+};
 
-#[derive(Debug, IsVariant)]
+#[derive(Debug, IsVariant, Clone)]
 pub enum AppState {
     /// Connecting to MQTT
     Connecting,
     /// Connected to MQTT
-    Connected { cli: Arc<Mutex<MqttClient>> },
+    Connected { cli: Arc<MqttClient> },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AppMessage {
     /// Transition the system state
     StateChange(AppState),
     /// Sensor node connected
-    ConnectNode(u16),
+    ConnectNode(ConnectionMessage),
     /// Sensor node disconnected
-    DisconnectNode(u16),
+    DisconnectNode(DisconnectionMessage),
+    /// Vehicle detection
+    Detection(DetectionMessage),
+    /// Zero button was pressed
+    SendZero,
+    /// Zero op completed
+    ZeroAck,
 }
 
 pub struct App {
@@ -44,27 +53,7 @@ impl Application for App {
                 state: AppState::Connecting,
                 connected_nodes: HashSet::new(),
             },
-            // Loop until we connect to server
-            Command::perform(
-                async {
-                    let cli = loop {
-                        let cli = MqttClient::connect("mqtt://localhost:1883").await;
-
-                        if let Err(err) = cli {
-                            log::error!("Failed to connect to server with: {}", err);
-                            continue;
-                        }
-
-                        break cli.unwrap();
-                    };
-
-                    log::info!("Connected to broker!");
-                    AppMessage::StateChange(AppState::Connected {
-                        cli: Arc::new(Mutex::new(cli)),
-                    })
-                },
-                |f| f,
-            ),
+            Command::none(),
         )
     }
 
@@ -78,14 +67,39 @@ impl Application for App {
                 self.state = state;
             }
             AppMessage::ConnectNode(id) => {
-                log::info!("Sensor node: {} connected", id);
-                self.connected_nodes.insert(id);
+                log::info!("Sensor node: {} connected", id.node_id);
+                self.connected_nodes.insert(id.node_id);
             }
             AppMessage::DisconnectNode(id) => {
-                log::info!("Sensor node: {} disconnected", id);
-                if !self.connected_nodes.remove(&id) {
+                log::info!("Sensor node: {} disconnected", id.node_id);
+                if !self.connected_nodes.remove(&id.node_id) {
                     log::error!("Disconnected a non-connected sensor node!");
                 }
+            }
+            AppMessage::Detection(detc) => {
+                //todo!("handle detection and run state")
+            }
+            AppMessage::SendZero => match &self.state {
+                AppState::Connecting => { /*Cannot zero if not connected*/ }
+                AppState::Connected { cli } => {
+                    log::info!("Sending zero...");
+
+                    let cli = cli.clone();
+                    return Command::perform(
+                        async move {
+                            if cli.publish(MqttMessage::Zero).await.is_err() {
+                                AppMessage::StateChange(AppState::Connecting)
+                            } else {
+                                AppMessage::ZeroAck
+                            }
+                        },
+                        |f| f,
+                    );
+                }
+            },
+            AppMessage::ZeroAck => {
+                log::info!("Zero returned success");
+                // TODO make a pop up or something
             }
         };
 
@@ -95,11 +109,15 @@ impl Application for App {
     fn view(&self) -> Element<'_, Self::Message, Renderer<Self::Theme>> {
         match &self.state {
             AppState::Connecting => row![Text::new("Connecting...")].into(),
-            AppState::Connected { cli } => row![Text::new("HI!")].into(),
+            AppState::Connected { .. } => row![
+                Text::new("HI!"),
+                Button::new("a").on_press(AppMessage::SendZero)
+            ]
+            .into(),
         }
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-
+        mqtt_subscription()
     }
 }

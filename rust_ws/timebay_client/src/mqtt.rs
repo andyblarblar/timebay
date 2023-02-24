@@ -2,7 +2,7 @@ use crate::error::Error;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 
-/// Mqtt client abstraction for sensor nodes
+/// Mqtt client abstraction for client
 pub struct MqttClient {
     cli: timebay_common::mqttclient::MqttClient,
 }

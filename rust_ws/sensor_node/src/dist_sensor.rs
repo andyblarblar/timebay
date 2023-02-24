@@ -1,3 +1,5 @@
+//! Abstractions over the distance sensor
+
 use async_trait::async_trait;
 use rand::{thread_rng, RngCore};
 use std::cmp::max;

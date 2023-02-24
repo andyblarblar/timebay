@@ -1,3 +1,5 @@
+//! Sensor node application logic
+
 use crate::dist_sensor::{DistanceReading, DistanceSensor, SensorError};
 use std::time::Instant;
 
