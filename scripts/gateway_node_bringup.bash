@@ -23,3 +23,5 @@ ip link set dev "$device" master br0
 
 # Add bridge ip, to allow for bridge to serve DHCP
 ip a add 192.168.0.2/24 brd + dev br0
+
+bash
