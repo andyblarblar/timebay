@@ -18,6 +18,7 @@ COPY configs/dhcp-defaults.conf /etc/default/isc-dhcp-server
 COPY configs/dhcp-gateway.conf /etc/dhcp/dhcpd.conf
 
 COPY scripts/gateway_node_bringup.bash .
+COPY scripts/find_mesh_interface.py .
 
 RUN chmod +x gateway_node_bringup.bash
 

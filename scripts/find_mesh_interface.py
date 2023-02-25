@@ -5,7 +5,7 @@ import re
 
 
 # Finds phy that supports mesh
-def find_phy(iw_out: [str]) -> None | str:
+def find_phy(iw_out: [str]):
     last_phy = None
 
     for line in iw_out:
@@ -26,7 +26,7 @@ def find_phy(iw_out: [str]) -> None | str:
 
 
 # Finds dev from phy
-def find_dev(phy: str, dev_out: [str]) -> str | None:
+def find_dev(phy: str, dev_out: [str]):
     phy_found = False
 
     for line in dev_out:

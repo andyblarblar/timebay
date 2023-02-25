@@ -22,6 +22,7 @@ COPY --from=builder /usr/local/cargo/bin/sensor_node /usr/local/bin/sensor_node
 
 # Copy the script that configures mesh and runs exe on boot
 COPY scripts/sensor_node_bringup.bash .
+COPY scripts/find_mesh_interface.py .
 
 RUN chmod +x sensor_node_bringup.bash
 
