@@ -2,16 +2,14 @@
 
 # Script that runs on boot of the sensor node docker container
 
-ifacename="wlxec086b180ec6" # TODO make this accurate for Pis
+# Find interface with mesh support
+device="$(python3 find_mesh_interface.py)"
 
 # Setup mesh, ip will be set by dhcpcd
-ip link set down $ifacename
-iw dev $ifacename set type mesh
-iw dev $ifacename set meshid timebay
-iw dev $ifacename set channel 5 HT40+
-ip link set up $ifacename
-
-# Set default route to gateway node
-ip route add default 192.168.0.1/24 dev $ifacename
+ip link set down "$device"
+iw dev "$device" set type mesh
+iw dev "$device" set meshid timebay
+iw dev "$device" set channel 5 HT40+
+ip link set up "$device"
 
 sensor_node

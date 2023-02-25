@@ -11,6 +11,9 @@ FROM debian:bullseye-slim
 ENV NODE_ID=0
 ENV BROKER_HOST=gateway
 
+# Install python for script use
+RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
+
 # Install networking utils
 RUN apt-get update && apt-get install -y iw iproute2 dhcpcd5 && rm -rf /var/lib/apt/lists/*
 
