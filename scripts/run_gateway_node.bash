@@ -5,5 +5,5 @@
 # Build docker container if not built yet
 [ -n "$(docker images -q timebay:gate)" ] || docker build -t timebay:gate -f gateway-node.dockerfile .
 
-# Launch gateway node, restarting if it crashed
-docker run --privileged --restart on-failure -t -d --network host timebay:gate
+# Launch gateway node
+docker run --privileged --rm -t -d --network host timebay:gate
