@@ -13,15 +13,13 @@ iw dev "$device" set channel 5 HT40+
 ip link set up "$device"
 
 # Bridge the mesh and eth
-brctl addbr br0
-brctl stp br0 off
-brctl addif br0 eth0
-brctl addif br0 "$device"
-ifconfig "$device" down
-ifconfig eth0 down
-ifconfig "$device" 0.0.0.0 up
-ifconfig eth0 0.0.0.0 up
-ifconfig br0 192.168.0.1/24
+ip link add name br0 type bridge
+ip link set dev br0 up
+ip link set dev eth0 master br0
+ip link set dev "$device" master br0
+
+# Add bridge ip, which is the only IP assigned to the gateway, accessed via either the mesh or eth
+ip a add 192.168.0.1/24 brd + dev br0
 
 # Spawn mosquitto in a background job
 mosquitto -c /etc/mosquitto/conf.d/mosquitto.conf &
