@@ -54,14 +54,28 @@ async fn main() -> anyhow::Result<()> {
     // Zero sensor
     let mut app = ApplicationContext::new(sensor, 10_000, 1000);
 
+    let mut disconnected = false;
     loop {
+        // Attempt reconnect on disconnect
+        if disconnected {
+            log::error!("Disconnected from broker, attempting reconnect...");
+            while let Err(err) = client.reconnect().await {
+                log::error!("Erred with {} during reconnect attempt!", err);
+            }
+        }
+
         let rcv_fut = client.recv_mqtt_msg();
         let trg_fut = app.wait_for_trigger();
 
         // Accept new messages and wait for sensor concurrently (branches are mutually exclusive)
         tokio::select! {
             res = rcv_fut => {
-                let msg = res?; //TODO handle this error
+                if res.is_err() {
+                    disconnected = true;
+                    continue
+                }
+
+                let msg = res.unwrap();
                 handle_mqtt_msg(msg, &mut client, &mut app).await?;
             },
             res = trg_fut => {
