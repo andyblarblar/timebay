@@ -61,7 +61,7 @@ async fn main() -> anyhow::Result<()> {
         // Accept new messages and wait for sensor concurrently (branches are mutually exclusive)
         tokio::select! {
             res = rcv_fut => {
-                let msg = res?;
+                let msg = res?; //TODO handle this error
                 handle_mqtt_msg(msg, &mut client, &mut app).await?;
             },
             res = trg_fut => {
