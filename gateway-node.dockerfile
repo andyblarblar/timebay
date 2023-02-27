@@ -4,7 +4,7 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
 
 # Install network tools and mosquitto
-RUN apt-get update && apt-get install -y iw iproute2 mosquitto && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y iw iproute2 mosquitto bridge-utils && rm -rf /var/lib/apt/lists/*
 
 COPY configs/mosquitto-gateway.conf /etc/mosquitto/conf.d/mosquitto.conf
 
