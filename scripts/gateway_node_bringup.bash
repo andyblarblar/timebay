@@ -27,5 +27,12 @@ ip a add 192.168.0.1/24 brd + dev "$device"
 # Spawn mosquitto in a background job
 mosquitto -c /etc/mosquitto/conf.d/mosquitto.conf &
 
+# We need to make lease database manually else dhcpd errors
+mkdir -p /var/lib/dhcp/
+touch /var/lib/dhcp/dhcpd.leases
+
+# Spawn dhcpd
+dhcpd
+
 # bash will yield to stdin, which we dont connect, allowing this docker container to remain running forever
 bash
