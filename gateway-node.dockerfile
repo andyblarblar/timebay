@@ -4,7 +4,7 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
 
 # Install network tools and mosquitto
-RUN apt-get update && apt-get install -y iw iproute2 mosquitto bridge-utils && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y iw iproute2 mosquitto batctl && rm -rf /var/lib/apt/lists/*
 
 COPY configs/mosquitto-gateway.conf /etc/mosquitto/conf.d/mosquitto.conf
 
@@ -18,9 +18,12 @@ COPY configs/dhcp-defaults.conf /etc/default/isc-dhcp-server
 COPY configs/dhcp-gateway.conf /etc/dhcp/dhcpd.conf
 
 COPY scripts/gateway_node_bringup.bash .
+COPY scripts/gateway_node_bringup_bat.bash .
 COPY scripts/find_mesh_interface.py .
+COPY scripts/find_adhoc_interface.py .
 
 RUN chmod +x gateway_node_bringup.bash
+RUN chmod +x gateway_node_bringup_bat.bash
 
 # Setup networking interfaces
 ENTRYPOINT ["/gateway_node_bringup.bash"]

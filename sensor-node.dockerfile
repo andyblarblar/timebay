@@ -15,15 +15,18 @@ ENV BROKER_HOST=gateway
 RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
 
 # Install networking utils
-RUN apt-get update && apt-get install -y iw iproute2 dhcpcd5 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y iw iproute2 dhcpcd5 batctl && rm -rf /var/lib/apt/lists/*
 
 # Copy the executable
 COPY --from=builder /usr/local/cargo/bin/sensor_node /usr/local/bin/sensor_node
 
 # Copy the script that configures mesh and runs exe on boot
 COPY scripts/sensor_node_bringup.bash .
+COPY scripts/sensor_node_bringup_bat.bash .
 COPY scripts/find_mesh_interface.py .
+COPY scripts/find_adhoc_interface.py .
 
 RUN chmod +x sensor_node_bringup.bash
+RUN chmod +x sensor_node_bringup_bat.bash
 
 ENTRYPOINT ["/sensor_node_bringup.bash"]
