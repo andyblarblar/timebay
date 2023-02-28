@@ -12,6 +12,8 @@ cross compiling ect.
 - The dockerfile should be cross compilable to other archs, like MIPS
 - While the TF-Luna does have an object detection mode that more or less eliminates the need for the dist sensor, I use
 the polling mode anyway, so we can swap to something like an ultrasonic sensor in the future with no code changes.
+- Connected messages are sent continuously as a heartbeat, since when they are sent only once a late connecting GUI cannot
+discover the node.
 
 ## Networking choices
 - Choice of layer 1:

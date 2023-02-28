@@ -1,7 +1,7 @@
 # Topics
 
 ## /connect
-- Use: Published to by nodes when they (re)connect with the broker.
+- Use: Published to continuously by nodes while they are connected to the broker.
 - Qos: Exactly Once
 - Format:
   - node_id: int - Node id of the connecting node

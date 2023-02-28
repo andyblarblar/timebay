@@ -17,7 +17,9 @@ use tokio::join;
 async fn main() -> anyhow::Result<()> {
     CombinedLogger::init(vec![simplelog::TermLogger::new(
         Debug,
-        simplelog::ConfigBuilder::default().build(),
+        simplelog::ConfigBuilder::default()
+            .add_filter_ignore_str("paho_mqtt")
+            .build(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )])
@@ -58,10 +60,14 @@ async fn main() -> anyhow::Result<()> {
     loop {
         // Attempt reconnect on disconnect
         if disconnected {
-            log::error!("Disconnected from broker, attempting reconnect...");
-            while let Err(err) = client.reconnect().await {
-                log::error!("Erred with {} during reconnect attempt!", err);
-            }
+            client.reconnect().await;
+            disconnected = false;
+        }
+
+        // Send connected messages as a sort of heartbeat, allowing for late connecting clients to discover us
+        if client.pub_connected_msg().await.is_err() {
+            disconnected = true;
+            continue;
         }
 
         let rcv_fut = client.recv_mqtt_msg();
@@ -76,7 +82,9 @@ async fn main() -> anyhow::Result<()> {
                 }
 
                 let msg = res.unwrap();
-                handle_mqtt_msg(msg, &mut client, &mut app).await?;
+                if handle_mqtt_msg(msg, &mut client, &mut app).await.is_err() {
+                    disconnected = true;
+                }
             },
             res = trg_fut => {
                 let dist = res?;
