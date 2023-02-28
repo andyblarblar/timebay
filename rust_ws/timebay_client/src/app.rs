@@ -64,11 +64,15 @@ impl Application for App {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             AppMessage::StateChange(state) => {
+                log::debug!("GUI state change to: {:?}", state);
                 self.state = state;
             }
             AppMessage::ConnectNode(id) => {
-                log::info!("Sensor node: {} connected", id.node_id);
-                self.connected_nodes.insert(id.node_id);
+                if self.connected_nodes.insert(id.node_id) {
+                    log::info!("Sensor node: {} connected", id.node_id);
+                } else {
+                    log::debug!("Heartbeat connection from node {}", id.node_id);
+                }
             }
             AppMessage::DisconnectNode(id) => {
                 log::info!("Sensor node: {} disconnected", id.node_id);

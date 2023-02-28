@@ -16,6 +16,7 @@ fn main() {
             .add_filter_ignore_str("naga")
             .add_filter_ignore_str("wgpu_hal")
             .add_filter_ignore_str("winit")
+            .add_filter_ignore_str("paho_mqtt")
             .build(),
         TerminalMode::Mixed,
         ColorChoice::Auto,

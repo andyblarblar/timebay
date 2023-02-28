@@ -32,7 +32,7 @@ pub fn mqtt_subscription() -> Subscription<AppMessage> {
                 State::Connecting => {
                     // Loop until we connect to broker
                     let cli = loop {
-                        let cli = MqttClient::connect("mqtt://localhost:1883").await; //TODO add correct ip
+                        let cli = MqttClient::connect("mqtt://192.168.0.1:1883").await; //TODO add correct ip
 
                         if let Err(err) = cli {
                             log::error!("Failed to connect to server with: {}", err);
@@ -91,13 +91,16 @@ pub fn mqtt_subscription() -> Subscription<AppMessage> {
                     log::info!("Attempting reconnect...");
 
                     match client.reconnect().await {
-                        Ok(_) => (
-                            // Transition gui back to connected
-                            Some(AppMessage::StateChange(AppState::Connected {
-                                cli: client.clone(),
-                            })),
-                            State::Connected(client),
-                        ),
+                        Ok(_) => {
+                            log::info!("Reconnected to broker!");
+                            (
+                                // Transition gui back to connected
+                                Some(AppMessage::StateChange(AppState::Connected {
+                                    cli: client.clone(),
+                                })),
+                                State::Connected(client),
+                            )
+                        }
                         Err(err) => {
                             log::error!("Erred with: {} when attempting reconnect!", err);
                             (None, State::Reconnecting(client))
