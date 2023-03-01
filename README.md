@@ -34,6 +34,8 @@ This script is intended to be run on boot of sensor node SBCs.
 
 First, ensure a mesh compatible Wi-Fi interface is available (only if using 802.11s), and that docker is installed.
 
+Ensure that the ethernet interface, the mesh interface, and bat0 are all denied in the dhcpcd config.
+
 Clone timebay. In the timebay directory, run
 
 For 802.11s:
