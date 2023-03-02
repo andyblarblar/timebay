@@ -15,4 +15,7 @@ iw dev "$device" ibss join timebay 2412 HT40+
 batctl if add "$device"
 ip l set bat0 up
 
+# Request an IP, will run in background as well
+dhcpcd
+
 sensor_node

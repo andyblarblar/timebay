@@ -1,4 +1,5 @@
 use std::ops::{Deref, DerefMut};
+use std::time::Duration;
 
 use paho_mqtt::ConnectOptionsBuilder;
 
@@ -43,7 +44,7 @@ impl MqttClient {
             server_id,
             &format!("node{}", node_id),
             &subs,
-            Some(conn_opt.finalize()),
+            Some(conn_opt.connect_timeout(Duration::from_secs(2)).finalize()),
         )
         .await?;
 

@@ -10,7 +10,6 @@ use crate::handlers::{handle_mqtt_msg, handle_trigger};
 use crate::mqtt::MqttClient;
 use log::LevelFilter::Debug;
 use simplelog::{ColorChoice, CombinedLogger, TerminalMode};
-use std::time::Duration;
 use tokio::join;
 
 #[tokio::main]
@@ -44,9 +43,9 @@ async fn main() -> anyhow::Result<()> {
                 {
                     log::info!("Successfully connected to broker");
                     break conn;
+                } else {
+                    log::error!("Timed out connecting to broker... (Do we have an IP on bat0?)");
                 }
-
-                tokio::time::sleep(Duration::from_secs(1)).await;
             }
         };
         join!(sensor_fut, client_fut)

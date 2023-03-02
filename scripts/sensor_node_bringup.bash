@@ -12,4 +12,7 @@ iw dev "$device" set meshid timebay
 iw dev "$device" set channel 5 HT40+
 ip link set up "$device"
 
+# Request an IP, will run in background as well
+dhcpcd
+
 sensor_node
