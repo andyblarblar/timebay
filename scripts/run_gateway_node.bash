@@ -6,4 +6,4 @@
 [ -n "$(docker images -q timebay:gate)" ] || docker build -t timebay:gate -f gateway-node.dockerfile .
 
 # Launch gateway node
-docker run --privileged --restart on-failure -t -d --network host timebay:gate
+docker run --privileged --rm -t -d --network host timebay:gate
