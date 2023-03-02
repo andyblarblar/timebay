@@ -8,14 +8,14 @@ mod sensor_connection;
 use crate::application::ApplicationContext;
 use crate::handlers::{handle_mqtt_msg, handle_trigger};
 use crate::mqtt::MqttClient;
-use log::LevelFilter::Debug;
+use log::LevelFilter::Trace;
 use simplelog::{ColorChoice, CombinedLogger, TerminalMode};
 use tokio::join;
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
     CombinedLogger::init(vec![simplelog::TermLogger::new(
-        Debug,
+        Trace,
         simplelog::ConfigBuilder::default()
             .add_filter_ignore_str("paho_mqtt")
             .build(),
@@ -30,7 +30,8 @@ async fn main() -> anyhow::Result<()> {
         // Get broker and node id from env vars
         let node_id = std::env::var("NODE_ID")
             .unwrap_or_else(|_| "1".to_string())
-            .parse()?;
+            .parse()
+            .unwrap();
         let server_host = std::env::var("BROKER_HOST").unwrap_or_else(|_| "localhost".to_string());
 
         let sensor_fut = sensor_connection::create_sensor();
@@ -59,6 +60,7 @@ async fn main() -> anyhow::Result<()> {
     loop {
         // Attempt reconnect on disconnect
         if disconnected {
+            log::error!("Disconnected from broker!");
             client.reconnect().await;
             disconnected = false;
         }
@@ -86,8 +88,13 @@ async fn main() -> anyhow::Result<()> {
                 }
             },
             res = trg_fut => {
-                let dist = res?;
-                handle_trigger(&mut client, &mut app, dist).await?;
+                if res.is_err() {
+                    log::error!("Sensor erred while reading!");
+                    continue
+                }
+                if handle_trigger(&mut client, &mut app, res.unwrap()).await.is_err() {
+                    disconnected = true;
+                }
             }
         }
     }

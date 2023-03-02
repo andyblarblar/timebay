@@ -59,11 +59,11 @@ impl<T: DistanceSensor> ApplicationContext<T> {
                 let time_since_last_detection = Instant::now().duration_since(self.last_detection);
                 self.last_detection = Instant::now();
                 if time_since_last_detection.as_millis() < 200 {
-                    log::debug!("Rejecting trigger due to debounce");
+                    log::trace!("Rejecting trigger due to debounce");
                     continue;
                 }
 
-                log::debug!("Triggered!");
+                log::info!("Triggered!");
 
                 return Ok(reading);
             }

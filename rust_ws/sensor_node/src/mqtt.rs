@@ -62,7 +62,6 @@ impl MqttClient {
     /// Reconnects to the broker if disconnected, publishing a connected message if so.
     pub async fn reconnect(&self) {
         loop {
-            log::error!("Disconnected from broker, attempting reconnect...");
             while let Err(err) = self.cli.reconnect().await {
                 log::error!("Erred with {} during reconnect attempt!", err);
             }
@@ -71,6 +70,7 @@ impl MqttClient {
             if self.pub_connected_msg().await.is_ok() {
                 break;
             };
+            log::error!("Failed pub after reconnect!");
         }
     }
 

@@ -13,6 +13,7 @@ pub async fn handle_mqtt_msg<T: DistanceSensor>(
 ) -> Result<(), Error> {
     match msg {
         MqttMessage::Zero => {
+            log::trace!("Beginning to zero");
             ctx.zero().await?;
             Ok(())
         }
@@ -26,6 +27,8 @@ pub async fn handle_trigger<T: DistanceSensor>(
     _ctx: &mut ApplicationContext<T>,
     dist: DistanceReading,
 ) -> Result<(), Error> {
+    log::trace!("Handling trigger");
+
     // Publish a detection message
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)

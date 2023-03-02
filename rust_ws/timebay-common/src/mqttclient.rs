@@ -47,6 +47,7 @@ impl MqttClient {
     /// Spins until an mqtt message is received.
     pub async fn recv_mqtt_msg(&self) -> Result<MqttMessage, Error> {
         if let Some(msg) = self.stream.recv().await.unwrap() {
+            log::trace!("Received MQTT message from topic: {}", msg.topic());
             Ok(msg.try_into()?)
         } else {
             Err(ExplicitDisconnect)
