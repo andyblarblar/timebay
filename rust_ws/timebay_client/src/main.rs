@@ -6,6 +6,7 @@ mod app;
 mod error;
 mod mqtt;
 mod mqttsub;
+mod splits;
 
 fn main() {
     CombinedLogger::init(vec![simplelog::TermLogger::new(

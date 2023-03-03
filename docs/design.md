@@ -32,3 +32,21 @@ to worry about configuring it beforehand.
     - In particular, it's actually interface agnostic, and can even run over bluetooth and ethernet!
   - This is done by just changing the docker entrypoint to a different script, so we don't need duplicate containers
 
+## Client choices
+- Client can survive disconnects
+- System can run with 1-2^16 nodes
+  - Really only matters that we support the single sensor node case
+- Sector notes:
+  - Sector are defined by a starting and ending node, where the ending node is the next sector starting node
+    - The last segment is an exception, as its end node is the first node.
+  - Timing starts when first node is passed
+    - Will not start if any other node is passed
+  - Sectors are completed when their end node is triggered
+  - If we jump a node, then mark any sector starting at the current segment and up to the segment ending with the node triggered as invalid.
+    - We keep timing however, so we still get a final result
+  - If we go back a node, just ignore (likely someone just walking on course)
+  - Node connection, disconnections, and reconnections are implicitly handled
+    - New nodes are ignored
+    - A node disconnecting will be handled by the following node being seen as a jump, invalidating the disconnected nodes sector
+    - Because of this a node can disconnect and reconnect in the same run transparently so long as it triggers when it should
+  - A run is done when the last non-invalidated segment is complete

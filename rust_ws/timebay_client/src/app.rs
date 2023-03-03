@@ -3,7 +3,7 @@ use crate::mqttsub::mqtt_subscription;
 use derive_more::IsVariant;
 use iced::widget::{row, Button, Text};
 use iced::{executor, Application, Command, Element, Renderer, Subscription, Theme};
-use std::collections::HashSet;
+use std::collections::{BTreeSet};
 use std::sync::Arc;
 use timebay_common::messages::{
     ConnectionMessage, DetectionMessage, DisconnectionMessage, MqttMessage,
@@ -37,7 +37,7 @@ pub struct App {
     /// Current connection state of the app
     state: AppState,
     /// Connected sensor node ids
-    connected_nodes: HashSet<u16>,
+    connected_nodes: BTreeSet<u16>,
     //TODO make run timings struct and view, then mqtt sub
 }
 
@@ -51,7 +51,7 @@ impl Application for App {
         (
             Self {
                 state: AppState::Connecting,
-                connected_nodes: HashSet::new(),
+                connected_nodes: BTreeSet::new(),
             },
             Command::none(),
         )

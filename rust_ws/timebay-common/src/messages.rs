@@ -8,6 +8,7 @@ use paho_mqtt::Message;
 use phf::phf_map;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
+use std::time::{Duration, SystemTime};
 
 /// Maps topics to QoS
 pub static TOPICS: phf::Map<&'static str, i32> = phf_map! {
@@ -125,6 +126,15 @@ pub struct DetectionMessage {
     pub stamp_s: u64,
     /// Nanoseconds fraction of the unix stamp.
     pub stamp_ns: u32,
+}
+
+impl DetectionMessage {
+    /// Returns the contained unix timestamp as a real time value.
+    pub fn get_stamp(&self) -> SystemTime {
+        SystemTime::UNIX_EPOCH
+            + Duration::from_secs(self.stamp_s)
+            + Duration::from_nanos(self.stamp_ns as u64)
+    }
 }
 
 #[cfg(test)]
