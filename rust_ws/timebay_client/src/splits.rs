@@ -1,10 +1,18 @@
 //! Lap timing logic and widgets
 
+use crate::app::AppMessage;
 use crate::splits::SectorState::Incomplete;
 use derive_more::{IsVariant, Unwrap};
+use iced::widget::{row, Column, Rule, Text};
+use iced::Element;
 use std::collections::BTreeSet;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 use timebay_common::messages::DetectionMessage;
+
+/// Formats the passed duration as m:s:ms
+pub fn format_time(t: &Duration) -> String {
+    format!("{}:{}:{}", t.as_secs() / 60, t.as_secs(), t.subsec_millis())
+}
 
 /// Splits widget
 pub struct Splits {
@@ -27,7 +35,7 @@ impl Splits {
         if nodes.is_empty() {
             None
         } else {
-            let sectors = {
+            let sectors = { //TODO make sector creation a function, and add a function that lets us connect a new node and recreate sectors if we haven't started the run yet (needed for first run)
                 let mut last = None;
                 let mut sec = vec![];
 
@@ -87,7 +95,7 @@ impl Splits {
             self.sectors[self.current_sector as usize].state =
                 SectorState::Complete(msg.get_stamp());
         }
-        // If we skipped over a node, we need to invalidate passed sectors (handling edge case of last sector)
+        // If we skipped over a node, we need to invalidate passed sectors (handling edge case of last sector, where node id is descending)
         else if self.sectors[self.current_sector as usize].nodes.1 < msg.node_id
             && self.current_sector as usize != self.sectors.len() - 1
         {
@@ -106,8 +114,11 @@ impl Splits {
                 .iter_mut()
                 .for_each(|s| s.state = SectorState::Invalidated);
         }
-        // If a passed node triggered again, just ignore
-        else if self.sectors[self.current_sector as usize].nodes.1 > msg.node_id {
+        // If a passed node triggered again, just ignore (accept edge case if it was rejected above, since node ordering is reversed there)
+        else if self.sectors[self.current_sector as usize].nodes.1 > msg.node_id
+            || (self.sectors[self.current_sector as usize].nodes.1 < msg.node_id
+                && self.current_sector as usize == self.sectors.len() - 1)
+        {
             log::trace!("Passed node triggered");
             return self.state.clone();
         }
@@ -160,9 +171,152 @@ impl Splits {
         &self.state
     }
 
-    //TODO add view, which is a colomn where each element is given by iterating over the sectors views, then has the time at the bottom
+    /// Creates the view for this set of splits.
+    ///
+    /// The last lap can be passed to generate time diffs.
+    pub fn view(&self, last_lap: Option<Self>) -> Element<AppMessage> {
+        let mut sectors = vec![];
+        let mut times = vec![];
+        let mut diffs = vec![];
+
+        let splits = self.get_sector_times();
+        let diffs_t = last_lap.map(|l| self.get_diffs(&l));
+
+        for (i, sector) in self.sectors.iter().enumerate() {
+            // Add sector name
+            let name = format!("Sector {}-{}", sector.nodes.0, sector.nodes.1);
+            sectors.push(Text::new(name).into());
+
+            // Add sector time if done
+            match sector.state {
+                SectorState::Invalidated => {
+                    times.push(
+                        Text::new("INVALIDATED")
+                            .style(iced::Color::from_rgb8(255, 0, 0))
+                            .into(),
+                    );
+                    diffs.push(Text::new("N/A").into());
+                }
+                Incomplete => {
+                    times.push(Text::new("").into());
+                    diffs.push(Text::new("").into());
+                }
+                SectorState::Complete(_) => {
+                    let sect_t = splits[i].unwrap();
+
+                    times.push(Text::new(format_time(&sect_t)).into());
+
+                    // Add diff time if diff is possible
+                    if let Some(ref last_lap) = diffs_t {
+                        if let Some(Some(diff)) = last_lap.get(i) {
+                            diffs.push(
+                                Text::new(diff.to_string())
+                                    .style(if *diff < 0 {
+                                        iced::Color::from_rgb8(0, 255, 0)
+                                    } else if *diff > 0 {
+                                        iced::Color::from_rgb8(255, 0, 0)
+                                    } else {
+                                        iced::Color::from_rgb8(0, 0, 0)
+                                    })
+                                    .into(),
+                            );
+                        }
+                    } else {
+                        diffs.push(Text::new("N/A").into());
+                    }
+                }
+            }
+        }
+
+        let total_time = Text::new(
+            self.get_total_time()
+                .map(|t| format_time(&t))
+                .unwrap_or(String::from("0:0:0")),
+        );
+
+        iced::widget::column![
+            row![
+                Column::with_children(sectors),
+                Rule::vertical(5),
+                Column::with_children(times),
+                Rule::vertical(5),
+                Column::with_children(diffs)
+            ],
+            row![total_time]
+        ]
+        .into()
+    }
+
+    /// Converts the absolute times from sectors to time spent in each sector.
+    ///
+    /// Returned vector contains the time for each sector in order, None for errored or incomplete sectors.
+    pub fn get_sector_times(&self) -> Vec<Option<Duration>> {
+        if self.state.is_not_started() {
+            return self.sectors.iter().map(|_| None).collect();
+        }
+
+        // Start of a lap anchors the split times
+        let start_time = match self.state {
+            SplitState::Running(start) => start,
+            SplitState::Completed(start, _) => start,
+            _ => unreachable!(),
+        };
+
+        // Sector times are relative to the previous valid sectors stamp
+        self.sectors
+            .iter()
+            .scan(start_time, |last_t, sect| match sect.state {
+                SectorState::Invalidated | Incomplete => Some(None),
+                SectorState::Complete(time) => {
+                    let ret = Some(time.duration_since(*last_t).ok());
+                    *last_t = time;
+                    ret
+                }
+            })
+            .collect()
+    }
+
+    /// Gets the total lap time. Returns None if not complete or if the end time is before the beginning.
+    pub fn get_total_time(&self) -> Option<Duration> {
+        match self.state {
+            SplitState::NotStarted | SplitState::Running(_) => None,
+            SplitState::Completed(start, end) => end.duration_since(start).ok(),
+        }
+    }
+
+    /// Gets the time diffs for each sector compared to a previous run. That is, if a lap took 10s on last,
+    /// and 11s in this run, the time in the vector will be +1000.
+    ///
+    /// Returned vector has diffs per sector in ms. Vector will be the length of the number of sectors in
+    /// this lap. Any sectors without a time in either lap will be None.
+    pub fn get_diffs(&self, last: &Self) -> Vec<Option<i32>> {
+        let our_times = self.get_sector_times();
+        let old_times = last.get_sector_times();
+
+        // This will iterate until we hit the shorter of the two splits, it may have less sectors than this split
+        let mut short_times: Vec<Option<i32>> = our_times
+            .iter()
+            .zip(old_times.iter())
+            .map(|(tt, ot)| {
+                if tt.is_some() && ot.is_some() {
+                    Some(tt.unwrap().as_millis() as i32 - ot.unwrap().as_millis() as i32)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // Pad until we match the number of sectors in this split
+        if short_times.len() < self.sectors.len() {
+            let diff = self.sectors.len() - short_times.len();
+            short_times.extend(std::iter::repeat(None).take(diff));
+        }
+
+        short_times
+    }
 }
 
+/// State of the splits run
 #[derive(IsVariant, Debug, Unwrap, Clone)]
 pub enum SplitState {
     /// Waiting for the first sensor
@@ -188,16 +342,12 @@ impl Sector {
             nodes: (starting_node, ending_node),
         }
     }
-
-    // TODO add view
 }
 
-#[derive(Debug, Eq, PartialEq, IsVariant)]
+#[derive(Debug, Eq, PartialEq, IsVariant, Unwrap)]
 enum SectorState {
     /// Sector was skipped
     Invalidated,
-    /// Node in sector disconnected
-    Disconnected,
     /// Node has not been completed yet
     Incomplete,
     /// Sector was completed at the contained absolute time
@@ -208,6 +358,7 @@ enum SectorState {
 mod tests {
     use crate::splits::{Sector, Splits};
     use std::collections::BTreeSet;
+    use std::time::Duration;
     use timebay_common::messages::DetectionMessage;
 
     #[test]
@@ -256,21 +407,34 @@ mod tests {
             .is_running());
 
         // Trigger the 3rd node, invalidating 1-2 and 2-3, leaving us in the last sector of 3-1
-        splits.handle_node_trigger(DetectionMessage::new(3, 10, 2, 0));
+        assert!(splits
+            .handle_node_trigger(DetectionMessage::new(3, 10, 2, 0))
+            .is_running());
         assert!(splits.sectors[0].state.is_invalidated());
         assert!(splits.sectors[1].state.is_invalidated());
         assert!(splits.sectors[2].state.is_incomplete());
         assert_eq!(splits.current_sector, 2);
 
-        // Trigger old node to ensure last node is handled same as rest
-        splits.handle_node_trigger(DetectionMessage::new(3, 10, 2, 0));
+        // Trigger old node to ensure old nodes are still ignored even when on last node
+        assert!(splits
+            .handle_node_trigger(DetectionMessage::new(3, 10, 2, 0))
+            .is_running());
         assert_eq!(splits.current_sector, 2);
-        splits.handle_node_trigger(DetectionMessage::new(2, 10, 2, 0));
+        assert!(splits
+            .handle_node_trigger(DetectionMessage::new(2, 10, 2, 0))
+            .is_running());
         assert_eq!(splits.current_sector, 2);
 
         // Finish run
         assert!(splits
-            .handle_node_trigger(DetectionMessage::new(1, 11, 2, 0))
+            .handle_node_trigger(DetectionMessage::new(1, 11, 3, 0))
             .is_completed());
+
+        assert_eq!(splits.get_total_time().unwrap(), Duration::from_secs(2));
+
+        assert_eq!(
+            splits.get_sector_times(),
+            vec![None, None, Some(Duration::from_secs(2))]
+        );
     }
 }

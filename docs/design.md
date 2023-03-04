@@ -50,3 +50,5 @@ to worry about configuring it beforehand.
     - A node disconnecting will be handled by the following node being seen as a jump, invalidating the disconnected nodes sector
     - Because of this a node can disconnect and reconnect in the same run transparently so long as it triggers when it should
   - A run is done when the last non-invalidated segment is complete
+- Sector times are calculated by the difference in time between the last completed sector and the next completed sector.
+  - This means that if a sector is invalidated, the time spent in that sector will be rolled into the next.

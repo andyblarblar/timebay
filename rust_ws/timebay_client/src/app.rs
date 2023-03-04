@@ -38,7 +38,7 @@ pub struct App {
     state: AppState,
     /// Connected sensor node ids
     connected_nodes: BTreeSet<u16>,
-    //TODO make run timings struct and view, then mqtt sub
+    //TODO Add two splits, need to lazy load the first on node connect
 }
 
 impl Application for App {
