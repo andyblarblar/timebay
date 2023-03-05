@@ -31,9 +31,12 @@ to worry about configuring it beforehand.
   - It also puts [an emphasis](https://www.open-mesh.org/projects/batman-adv/wiki/Wiki) on being able to be bridged, so it should solve our 80211s woes there
     - In particular, it's actually interface agnostic, and can even run over bluetooth and ethernet!
   - This is done by just changing the docker entrypoint to a different script, so we don't need duplicate containers
+- In order to avoid latency in the system effecting lap times, detection messages will be timestamped globally when the detection occurs on device. This relies on
+all nodes having a synchronised clock.
 
 ## Client choices
 - Client can survive disconnects
+  - The current splits however will not, although this shouldn't be an issue since the client will be hardwired
 - System can run with 1-2^16 nodes
   - Really only matters that we support the single sensor node case
 - Sector notes:
@@ -52,3 +55,7 @@ to worry about configuring it beforehand.
   - A run is done when the last non-invalidated segment is complete
 - Sector times are calculated by the difference in time between the last completed sector and the next completed sector.
   - This means that if a sector is invalidated, the time spent in that sector will be rolled into the next.
+- The client is designed such that it can be started before any other node on a cold start, and passively manage itself 
+as the user connects the sensor nodes. 
+  - This should speed up setup, since one can visually determine if a node is connected by checking the clients screen from
+  a distance.
