@@ -1,10 +1,11 @@
 //! Lap timing logic and widgets
 
-use crate::app::AppMessage;
 use crate::splits::SectorState::Incomplete;
+use cursive::align::HAlign;
+use cursive::theme::Color;
+use cursive::views::{LinearLayout, Panel, TextView};
 use derive_more::{IsVariant, Unwrap};
-use iced::widget::{column, row, Column, Rule, Text};
-use iced::Element;
+use itertools::izip;
 use std::collections::BTreeSet;
 use std::time::{Duration, SystemTime};
 use timebay_common::messages::DetectionMessage;
@@ -195,7 +196,7 @@ impl Splits {
     /// Creates the view for this set of splits.
     ///
     /// The last lap can be passed to generate time diffs.
-    pub fn view(&self, last_lap: &Option<Self>) -> Element<AppMessage> {
+    pub fn view(&self, last_lap: &Option<Self>) -> impl cursive::view::View {
         let mut sectors = vec![];
         let mut times = vec![];
         let mut diffs = vec![];
@@ -207,71 +208,85 @@ impl Splits {
         for (i, sector) in self.sectors.iter().enumerate() {
             // Add sector name
             let name = format!("Sector {}-{}", sector.nodes.0, sector.nodes.1);
-            sectors.push(Text::new(name).into());
+            sectors.push(Panel::new(TextView::new(name)));
 
             // Add sector time if done
             match sector.state {
                 SectorState::Invalidated => {
-                    times.push(
-                        Text::new("INVALIDATED")
-                            .style(iced::Color::from_rgb8(255, 0, 0))
-                            .into(),
-                    );
-                    diffs.push(Text::new("N/A").into());
+                    times.push(Panel::new(
+                        TextView::new("INVALIDATED").style(Color::Rgb(255, 0, 0)),
+                    ));
+                    diffs.push(Panel::new(TextView::new("N/A")));
                 }
                 Incomplete => {
-                    times.push(Text::new("...").into());
-                    diffs.push(Text::new("N/A").into());
+                    times.push(Panel::new(TextView::new("...")));
+                    diffs.push(Panel::new(TextView::new("N/A")));
                 }
                 SectorState::Complete(_) => {
                     let sect_t = splits[i].unwrap();
 
-                    times.push(Text::new(Self::format_time(&sect_t)).into());
+                    times.push(Panel::new(TextView::new(Self::format_time(&sect_t))));
 
                     // Add diff time if diff is possible
                     if let Some(ref last_lap) = diffs_t {
                         if let Some(Some(diff)) = last_lap.get(i) {
-                            diffs.push(
-                                Text::new(diff.to_string())
-                                    .style(if *diff < 0 {
-                                        iced::Color::from_rgb8(0, 255, 0)
-                                    } else if *diff > 0 {
-                                        iced::Color::from_rgb8(255, 0, 0)
-                                    } else {
-                                        iced::Color::from_rgb8(0, 0, 0)
-                                    })
-                                    .into(),
-                            );
+                            diffs.push(Panel::new(TextView::new(Self::format_diff(diff)).style(
+                                if *diff < 0 {
+                                    Color::Rgb(10, 250, 10)
+                                } else if *diff > 0 {
+                                    Color::Rgb(255, 0, 0)
+                                } else {
+                                    Color::Rgb(0, 0, 0)
+                                },
+                            )));
                         }
                     } else {
-                        diffs.push(Text::new("N/A").into());
+                        diffs.push(Panel::new(TextView::new("N/A")));
                     }
                 }
             }
         }
 
+        // Make sure the table is never empty
         if self.sectors.is_empty() {
-            sectors.push(Text::new("No nodes connected...").into());
-            times.push(Text::new("...").into());
-            diffs.push(Text::new("N/A").into());
+            sectors.push(Panel::new(TextView::new("No nodes connected...")));
+            times.push(Panel::new(TextView::new("...")));
+            diffs.push(Panel::new(TextView::new("N/A")));
         }
 
-        let total_time = Text::new(
+        let total_time = TextView::new(
             self.get_total_time()
                 .map(|t| Self::format_time(&t))
                 .unwrap_or(String::from("0.0.0")),
         );
 
-        column![
-            row![
-                Column::with_children(sectors),
-                Column::with_children(times),
-                Column::with_children(diffs)
-            ]
-            .spacing(20),
-            row![total_time]
-        ]
-        .into()
+        // Create our table out of horizontal views in a vertical view, forming a grid
+        let sector_times =
+            izip!(sectors, times, diffs).fold(LinearLayout::vertical(), |agg, line| {
+                agg.child(
+                    LinearLayout::horizontal()
+                        .child(line.0)
+                        .child(line.1)
+                        .child(line.2),
+                )
+            });
+
+        let total_time = Panel::new(total_time)
+            .title("Final time")
+            .title_position(HAlign::Left);
+
+        let outer_layout = LinearLayout::vertical();
+        outer_layout
+            .child(
+                Panel::new(sector_times)
+                    .title("Sector times")
+                    .title_position(HAlign::Left),
+            )
+            .child(total_time)
+    }
+
+    fn format_diff(diff: &i32) -> String {
+        format!("{:+}", *diff as f32 / 1000.0)
     }
 
     /// Formats the passed duration as m:s:ms

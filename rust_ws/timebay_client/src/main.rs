@@ -1,5 +1,5 @@
 use iced::{Application, Settings};
-use log::LevelFilter::Debug;
+use log::LevelFilter::{Debug, Trace};
 use simplelog::{ColorChoice, CombinedLogger, TerminalMode};
 
 mod app;
@@ -10,7 +10,7 @@ mod splits;
 
 fn main() {
     CombinedLogger::init(vec![simplelog::TermLogger::new(
-        Debug,
+        Trace,
         simplelog::ConfigBuilder::default()
             .add_filter_ignore_str("wgpu_core")
             .add_filter_ignore_str("iced_wgpu")

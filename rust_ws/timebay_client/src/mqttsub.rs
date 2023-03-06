@@ -32,7 +32,7 @@ pub fn mqtt_subscription() -> Subscription<AppMessage> {
                 State::Connecting => {
                     // Loop until we connect to broker
                     let cli = loop {
-                        let cli = MqttClient::connect("mqtt://192.168.0.1:1883").await; //TODO add correct ip
+                        let cli = MqttClient::connect("mqtt://localhost:1883").await; //TODO add correct ip
 
                         if let Err(err) = cli {
                             log::error!("Failed to connect to server with: {}", err);

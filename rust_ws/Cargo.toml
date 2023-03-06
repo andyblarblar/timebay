@@ -4,5 +4,6 @@ members = [
     "sensor_node",
     "tf-luna",
     "timebay-common",
-    "timebay_client"
+    "timebay_client",
+    "timebay_tui"
 ]
