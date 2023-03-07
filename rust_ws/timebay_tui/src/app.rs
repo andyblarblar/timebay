@@ -134,7 +134,10 @@ impl App {
                     // Swap current lap to last lap when done
                     self.last_last_lap = self.last_lap.clone();
                     self.last_lap = Some(self.lap.clone());
+
+                    // Start next lap immediately, since the first node overlaps both runs
                     self.lap = Splits::new(self.connected_nodes.clone());
+                    self.lap.handle_node_trigger(detc);
                 }
             }
             AppMessage::SendZero => {

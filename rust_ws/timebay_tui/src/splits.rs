@@ -513,8 +513,6 @@ mod tests {
             splits.get_sector_times(),
             vec![None, None, Some(Duration::from_secs(2))]
         );
-
-        //TODO test single sensor
     }
 
     #[test]

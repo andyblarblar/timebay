@@ -36,8 +36,6 @@ impl MqttClient {
         let qoss: Vec<_> = subs.iter().map(|t| TOPICS[t]).collect();
         client.subscribe_many(subs, &qoss);
 
-        //TODO make sure we have auto reconnect on
-
         Ok(Self {
             cli: client,
             stream,
