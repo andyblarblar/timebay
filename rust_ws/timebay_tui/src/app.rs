@@ -15,7 +15,7 @@ pub enum AppState {
     Connected { cli: Arc<MqttClient> },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, IsVariant)]
 pub enum AppMessage {
     /// Transition the system state
     StateChange(AppState),
@@ -31,6 +31,7 @@ pub enum AppMessage {
     ZeroAck,
 }
 
+/// Application state implementation
 pub struct App {
     /// Current connection state of the app
     state: AppState,
@@ -40,7 +41,7 @@ pub struct App {
     lap: Splits,
     /// Last lap
     last_lap: Option<Splits>,
-    /// Last last lap
+    /// Two laps ago. Not displayed, but used for diffs.
     last_last_lap: Option<Splits>,
 }
 
@@ -53,10 +54,9 @@ impl App {
             last_lap: None,
             last_last_lap: None,
         }
-    } //TODO I think we can just have app create the full view as in iced, and have the app live in the other thread. This thread polls both over zeroed commands from the GUI, MQTT messages, and then sets the full view via cb_sink
-      //This way we can directly port update and view. view is just always called from update, although we need to figure out how to emulate message passing.
+    }
 
-    /// Generates the main body view
+    /// Generates the main body view based off current app state
     pub fn view(&self) -> impl cursive::view::View {
         if self.state.is_connecting() {
             LinearLayout::horizontal().child(Dialog::around(TextView::new("Connecting...")))
@@ -87,5 +87,44 @@ impl App {
                     .title("Connected sensors"),
                 )
         }
+    }
+
+    /// Performs side effects based off an application message
+    pub fn update(&mut self, message: AppMessage) {
+        match message {
+            AppMessage::StateChange(state) => {
+                log::debug!("GUI state change to: {:?}", state);
+                self.state = state;
+            }
+            AppMessage::ConnectNode(id) => {
+                if self.connected_nodes.insert(id.node_id) {
+                    log::info!("Sensor node: {} connected", id.node_id);
+                } else {
+                    log::debug!("Heartbeat connection from node {}", id.node_id);
+                }
+
+                // Add node to splits if we haven't started yet
+                self.lap.connect_node(id.node_id);
+            }
+            AppMessage::DisconnectNode(id) => {
+                log::info!("Sensor node: {} disconnected", id.node_id);
+                if !self.connected_nodes.remove(&id.node_id) {
+                    log::error!("Disconnected a non-connected sensor node!");
+                }
+            }
+            AppMessage::Detection(detc) => {
+                if self.lap.handle_node_trigger(detc).is_completed() {
+                    // Swap current lap to last lap when done
+                    self.last_last_lap = self.last_lap.clone();
+                    self.last_lap = Some(self.lap.clone());
+                    self.lap = Splits::new(self.connected_nodes.clone());
+                }
+            }
+            AppMessage::SendZero => { /* This should be handled in the eventloop */ }
+            AppMessage::ZeroAck => {
+                log::info!("Zero returned success");
+                
+            }
+        };
     }
 }
