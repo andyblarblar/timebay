@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-cursive = "0.20.0"
-log = "0.4.17"
-paho-mqtt = "0.12.0"
-thiserror = "1.0.38"
-derive_more = "0.99.17"
-tokio = {version = "1.26.0", features=['rt-multi-thread']}
-itertools = "0.10.5"
-crossfire = "1.0.0"
-futures = "0.3.26"
+cursive = "^0.20"
+log = "^0.4"
+paho-mqtt = "^0.12"
+thiserror = "^1"
+derive_more = "^0"
+tokio = {version = "^1", features=['rt-multi-thread']}
+itertools = "^0.10"
+crossfire = "^1"
+futures = "^0.3"
 
 timebay-common = { path = "../timebay-common" }

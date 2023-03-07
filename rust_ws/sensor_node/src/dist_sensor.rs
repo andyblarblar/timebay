@@ -1,8 +1,7 @@
 //! Abstractions over the distance sensor
 
 use async_trait::async_trait;
-use rand::distributions::Distribution;
-use rand::{thread_rng, RngCore};
+use rand::RngCore;
 use std::cmp::max;
 use std::io;
 use std::time::Duration;
@@ -38,31 +37,22 @@ impl DistanceReading {
 pub struct MockDistanceReader {
     max: u32,
     min: u32,
-    pdf: rand::distributions::Bernoulli,
 }
 
 impl MockDistanceReader {
     /// Creates a mock sensor that reads random values between min and max.
     pub fn new(min: u32, max: u32) -> Self {
-        Self {
-            max,
-            min,
-            pdf: rand::distributions::Bernoulli::new(0.3).unwrap(),
-        }
+        Self { max, min }
     }
 }
 
 #[async_trait]
 impl DistanceSensor for MockDistanceReader {
     async fn get_reading(&mut self) -> Result<DistanceReading, SensorError> {
-        tokio::time::sleep(Duration::from_millis(10)).await;
+        tokio::time::sleep(Duration::from_millis(3000)).await;
         Ok(DistanceReading::new(max(
-            if self.pdf.sample(&mut thread_rng()) {
-                4000
-            } else {
-                12000
-            },
             self.min,
+            rand::thread_rng().next_u32() % self.max,
         )))
     }
 }
