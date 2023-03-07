@@ -1,12 +1,17 @@
+//! Application state and logic
+
+use crate::app::AppState::Connected;
 use crate::mqtt::MqttClient;
 use crate::splits::Splits;
 use cursive::traits::Nameable;
 use cursive::views::{Dialog, LinearLayout, TextView};
 use derive_more::IsVariant;
 use std::collections::BTreeSet;
+use std::future::Future;
 use std::sync::Arc;
 use timebay_common::messages::{ConnectionMessage, DetectionMessage, DisconnectionMessage};
 
+/// App connection state
 #[derive(Debug, IsVariant, Clone)]
 pub enum AppState {
     /// Connecting to MQTT
@@ -15,6 +20,7 @@ pub enum AppState {
     Connected { cli: Arc<MqttClient> },
 }
 
+/// Messages passed from external sources to be acted upon by the app
 #[derive(Debug, Clone, IsVariant)]
 pub enum AppMessage {
     /// Transition the system state
@@ -29,6 +35,8 @@ pub enum AppMessage {
     SendZero,
     /// Zero op completed
     ZeroAck,
+    /// Does nothing
+    Nop,
 }
 
 /// Application state implementation
@@ -46,6 +54,7 @@ pub struct App {
 }
 
 impl App {
+    /// Creates a new application
     pub fn new() -> Self {
         Self {
             state: AppState::Connecting,
@@ -89,8 +98,16 @@ impl App {
         }
     }
 
-    /// Performs side effects based off an application message
-    pub fn update(&mut self, message: AppMessage) {
+    /// Performs side effects based off an application message.
+    ///
+    /// These side effects are not long running to avoid blocking the gui.
+    ///
+    /// If an additional async side effect should occur, it can be returned. This side effect can in
+    /// turn return another message.
+    pub fn update(
+        &mut self,
+        message: AppMessage,
+    ) -> Option<Box<dyn Future<Output = AppMessage> + Send>> {
         match message {
             AppMessage::StateChange(state) => {
                 log::debug!("GUI state change to: {:?}", state);
@@ -120,11 +137,31 @@ impl App {
                     self.lap = Splits::new(self.connected_nodes.clone());
                 }
             }
-            AppMessage::SendZero => { /* This should be handled in the eventloop */ }
-            AppMessage::ZeroAck => {
-                log::info!("Zero returned success");
-                
+            AppMessage::SendZero => {
+                if let Connected { ref cli } = self.state {
+                    log::trace!("sending zero mqtt");
+
+                    // Send zero in a background thread and react on ack
+                    let cli_cl = cli.clone();
+                    return Some(Box::new(async move {
+                        if cli_cl
+                            .publish(timebay_common::messages::MqttMessage::Zero)
+                            .await
+                            .is_err()
+                        {
+                            AppMessage::StateChange(AppState::Connecting)
+                        } else {
+                            AppMessage::ZeroAck
+                        }
+                    }));
+                }
             }
+            AppMessage::ZeroAck => {
+                log::trace!("Zero returned success");
+            }
+            AppMessage::Nop => {}
         };
+
+        None
     }
 }

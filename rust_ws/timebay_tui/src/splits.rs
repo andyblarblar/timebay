@@ -254,7 +254,7 @@ impl Splits {
             diffs.push(Panel::new(TextView::new("N/A")));
         }
 
-        let total_time = TextView::new(
+        let total_time = TextView::new( //TODO add diff to this
             self.get_total_time()
                 .map(|t| Self::format_time(&t))
                 .unwrap_or(String::from("0.0.0")),
@@ -289,7 +289,7 @@ impl Splits {
         format!("{:+}", *diff as f32 / 1000.0)
     }
 
-    /// Formats the passed duration as m:s:ms
+    /// Formats the passed duration as m.s.ms
     fn format_time(t: &Duration) -> String {
         format!("{}.{}.{}", t.as_secs() / 60, t.as_secs(), t.subsec_millis())
     }

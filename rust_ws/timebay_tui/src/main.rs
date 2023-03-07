@@ -2,13 +2,13 @@ mod app;
 mod backend;
 mod error;
 mod mqtt;
+mod mqttsub;
 mod splits;
 
 use crate::app::{App, AppMessage};
 use crate::backend::SharedState;
 use cursive::menu::Tree;
 use cursive::traits::*;
-use cursive::With as _;
 use std::sync::{Arc, Mutex};
 
 fn main() {
@@ -24,6 +24,7 @@ fn main() {
 
     siv.add_layer(app.view());
 
+    // We need to share app between threads using user data, since it must be send
     let shared = Arc::new(Mutex::new(SharedState { app, backend_tx }));
     siv.set_user_data(shared.clone());
 
@@ -42,7 +43,9 @@ fn main() {
 
     // Because we use an Elm like model, this background thread will receive messages from the gui,
     // act on them, and then edit the whole gui (likely a re-render, though not eccentrically)
-    std::thread::spawn(move || backend::backend_thread(shared, cb_sink, backend_rx));
+    std::thread::spawn(move || {
+        backend::backend_thread(shared, String::from("localhost"), cb_sink, backend_rx) //TODO get host properly
+    });
 
     siv.run();
 }
