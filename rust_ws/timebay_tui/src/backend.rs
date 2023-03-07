@@ -80,7 +80,8 @@ pub fn backend_thread(
                     app.app.view()
                 };
 
-                s.pop_layer();//TODO name the view so we only replace it and not dialogs
+                // Remove all layers
+                while s.pop_layer().is_some() {}
                 s.add_layer(view);
             }))
             .unwrap();

@@ -3,7 +3,7 @@
 use crate::splits::SectorState::Incomplete;
 use cursive::align::HAlign;
 use cursive::theme::Color;
-use cursive::views::{LinearLayout, Panel, TextView};
+use cursive::views::{DummyView, LinearLayout, Panel, TextView};
 use derive_more::{IsVariant, Unwrap};
 use itertools::izip;
 use std::collections::BTreeSet;
@@ -254,11 +254,29 @@ impl Splits {
             diffs.push(Panel::new(TextView::new("N/A")));
         }
 
-        let total_time = TextView::new( //TODO add diff to this
-            self.get_total_time()
-                .map(|t| Self::format_time(&t))
-                .unwrap_or(String::from("0.0.0")),
-        );
+        let total_time = {
+            let other = last_lap.as_ref().map(|l| l.get_total_time());
+            let us = self.get_total_time();
+
+            if let Some(us) = us {
+                if let Some(Some(other)) = other {
+                    let diff = &(us.as_millis() as i32 - other.as_millis() as i32);
+                    LinearLayout::horizontal()
+                        .child(TextView::new(Self::format_time(&us) + " "))
+                        .child(TextView::new(Self::format_diff(diff)).style(if *diff < 0 {
+                            Color::Rgb(10, 250, 10)
+                        } else if *diff > 0 {
+                            Color::Rgb(255, 0, 0)
+                        } else {
+                            Color::Rgb(0, 0, 0)
+                        }))
+                } else {
+                    LinearLayout::horizontal().child(TextView::new(Self::format_time(&us)))
+                }
+            } else {
+                LinearLayout::horizontal().child(TextView::new(String::from("0:00.0")))
+            }
+        };
 
         // Create our table out of horizontal views in a vertical view, forming a grid
         let sector_times =
@@ -289,9 +307,17 @@ impl Splits {
         format!("{:+}", *diff as f32 / 1000.0)
     }
 
-    /// Formats the passed duration as m.s.ms
+    /// Formats the passed duration as m:s.ms
     fn format_time(t: &Duration) -> String {
-        format!("{}.{}.{}", t.as_secs() / 60, t.as_secs(), t.subsec_millis())
+        let mut sec = t.as_secs();
+        let sec = loop {
+            if sec < 60 {
+                break sec;
+            } else {
+                sec -= 60;
+            }
+        };
+        format!("{}:{:02}.{}", t.as_secs() / 60, sec, t.subsec_millis())
     }
 
     /// Converts the absolute times from sectors to time spent in each sector.
@@ -487,5 +513,16 @@ mod tests {
             splits.get_sector_times(),
             vec![None, None, Some(Duration::from_secs(2))]
         );
+
+        //TODO test single sensor
+    }
+
+    #[test]
+    fn time_formatting() {
+        let time = Duration::from_secs(62);
+        assert_eq!(Splits::format_time(&time), String::from("1:02.0"));
+
+        let time = Duration::from_secs(31) + Duration::from_millis(100);
+        assert_eq!(Splits::format_time(&time), String::from("0:31.100"));
     }
 }
