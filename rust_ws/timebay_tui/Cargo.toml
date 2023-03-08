@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 cursive = "^0.20"
+flexi_logger = "0.22.6"
+cursive-flexi-logger-view = "0.5.0"
 log = "^0.4"
 paho-mqtt = "^0.12"
 thiserror = "^1"

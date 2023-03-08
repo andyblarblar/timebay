@@ -3,7 +3,7 @@
 use crate::splits::SectorState::Incomplete;
 use cursive::align::HAlign;
 use cursive::theme::Color;
-use cursive::views::{DummyView, LinearLayout, Panel, TextView};
+use cursive::views::{LinearLayout, Panel, TextView};
 use derive_more::{IsVariant, Unwrap};
 use itertools::izip;
 use std::collections::BTreeSet;

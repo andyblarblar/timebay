@@ -68,7 +68,7 @@ impl App {
     /// Generates the main body view based off current app state
     pub fn view(&self) -> impl cursive::view::View {
         if self.state.is_connecting() {
-            LinearLayout::horizontal().child(Dialog::around(TextView::new("Connecting...")))
+            LinearLayout::horizontal().child(Dialog::around(TextView::new("Connecting to gateway...")))
         } else {
             LinearLayout::horizontal()
                 .child(
