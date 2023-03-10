@@ -15,6 +15,7 @@ ip link set up "$device"
 # Bridge the mesh and eth
 ip link add name br0 type bridge
 ip link set dev br0 up
+ip link set dev eth0 up
 ip link set dev eth0 master br0
 ip link set dev "$device" master br0
 
