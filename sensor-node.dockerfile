@@ -1,4 +1,4 @@
-FROM rust:1.67 as builder
+FROM rust:1.68 as builder
 
 RUN apt-get update && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*
 
