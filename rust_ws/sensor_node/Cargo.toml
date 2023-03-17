@@ -13,3 +13,8 @@ thiserror = "^1"
 paho-mqtt = "^0.12"
 
 timebay-common = { path = "../timebay-common" }
+tf-luna = { path = "../tf-luna" }
+
+[features]
+# Set when you want to test without a tfluna attached
+no_sensor = []

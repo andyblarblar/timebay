@@ -5,6 +5,7 @@ use rand::RngCore;
 use std::cmp::max;
 use std::io;
 use std::time::Duration;
+use tf_luna::TfLuna;
 use thiserror::Error;
 
 /// A sensor capable of reading distance values.
@@ -19,6 +20,8 @@ pub trait DistanceSensor {
 pub enum SensorError {
     #[error(transparent)]
     IOError(#[from] io::Error),
+    #[error(transparent)]
+    LunaErr(#[from] tf_luna::error::Error),
 }
 
 /// A distance reading
@@ -54,5 +57,15 @@ impl DistanceSensor for MockDistanceReader {
             self.min,
             rand::thread_rng().next_u32() % self.max,
         )))
+    }
+}
+
+#[async_trait]
+impl DistanceSensor for TfLuna {
+    async fn get_reading(&mut self) -> Result<DistanceReading, SensorError> {
+        Ok(self
+            .read()
+            .await
+            .map(|x| DistanceReading::new(x.dist as u32 * 10))?)
     }
 }

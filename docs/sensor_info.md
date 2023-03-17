@@ -15,7 +15,7 @@ allows for reading darker objects.
 
 ## Format
 - There are many kinds of data frames and control frames
-- Data frame:
+- Control frame:
   - 0: 0x5A
   - 1: Len (4-255) - Length of bytes from head to checksum
   - 2: ID - Indicates payload format
