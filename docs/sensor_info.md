@@ -9,13 +9,18 @@ This document holds some notes on the TF-Luna laser rangefinder
 - Units: cm (says it can be configured)
 - Rate: 100Hz (can be configured 1-250Hz)
   - Higher rates lower accuracy
+- Has a mode to use single frequency, which requires you to only hit things under 15m, but
+allows for reading darker objects.
+- Supports a mode that reads only occasionally, to lower power.
 
 ## Format
-- 0: 0x5A
-- 1: Len (4-255) - Length of bytes from head to checksum
-- 2: ID - Indicates payload format
-- 3-Len-2: Payload - Data segment
-- Len-1: Checksum - Lower 8 bytes of the sum from Head to payload
+- There are many kinds of data frames and control frames
+- Data frame:
+  - 0: 0x5A
+  - 1: Len (4-255) - Length of bytes from head to checksum
+  - 2: ID - Indicates payload format
+  - 3-Len-2: Payload - Data segment
+  - Len-1: Checksum - Lower 8 bytes of the sum from Head to payload
 - 
 
 ## Electrical
@@ -23,7 +28,7 @@ This document holds some notes on the TF-Luna laser rangefinder
 - 3v3 TTL
   - Same as Pi
 - Peak current = 150mA@5v
-- Avg current = <70mA@5v
+- Avg current = <70mA@5v (assuming continues ranging)
 - Pins:
   - 5v
   - Rx

@@ -1,14 +1,7 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! TFLuna async driver for std environments.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod types;
+mod sensor;
+pub mod error;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use sensor::TfLuna;

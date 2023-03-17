@@ -3,6 +3,8 @@ name = "tf-luna"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+derive_more = "^0"
+tokio-serial = "5.4.4"
+thiserror = "^1"
+tokio = { version = "^1", features = ['io-util'] }

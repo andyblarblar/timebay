@@ -1,9 +1,12 @@
+//! Gui background thread
+
 use crate::app::{App, AppMessage};
 use crate::mqttsub::mqtt_subscription;
 use crossfire::mpsc::SharedSenderBRecvF;
 use crossfire::mpsc::TxBlocking;
 use cursive::views::Dialog;
 use futures::StreamExt;
+use std::pin::pin;
 use std::sync::{Arc, Mutex};
 use tokio::runtime::Builder;
 
@@ -33,7 +36,7 @@ pub fn backend_thread(
     // Spawn one task that takes mqtt messages and converts them to messages for the app
     let b_tx_mqtt = backend_tx.clone();
     rt.spawn(async move {
-        let mut mqtt_stream = Box::pin(mqtt_subscription(broker_host));
+        let mut mqtt_stream = pin!(mqtt_subscription(broker_host));
         while let Some(msg) = mqtt_stream.next().await {
             b_tx_mqtt.send(msg).await.unwrap();
         }
