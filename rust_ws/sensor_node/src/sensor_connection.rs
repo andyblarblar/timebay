@@ -10,6 +10,13 @@ pub async fn create_sensor() -> impl DistanceSensor {
     }
     #[cfg(not(feature = "no_sensor"))]
     {
-        TfLuna::new(PathBuf::from("/dev/ttyUSB0")).expect("Could not connect to TFLuna!")
+        // Attempt to connect if connected to either the UART adapter or on a Le Potato
+        let res = TfLuna::new(PathBuf::from("/dev/ttyUSB0"));
+
+        if let Ok(sensor) = res {
+            sensor
+        } else {
+            TfLuna::new(PathBuf::from("/dev/ttyAML6")).expect("No avialible tf-lunas!")
+        }
     }
 }
