@@ -1,7 +1,8 @@
 use crate::error::Error;
 use crate::types::NineByteCm;
+use std::path::PathBuf;
 use tokio::io::AsyncReadExt;
-use tokio_serial::{DataBits, Parity, SerialPortType, SerialStream, StopBits};
+use tokio_serial::{DataBits, Parity, SerialStream, StopBits};
 
 pub struct TfLuna {
     port: SerialStream,
@@ -9,20 +10,9 @@ pub struct TfLuna {
 
 impl TfLuna {
     /// Connects to a TFLuna, if possible.
-    pub fn new() -> Result<Self, Error> {
-        let ports = tokio_serial::available_ports()?;
-        let port = ports.iter().find(|p| {
-            match &p.port_type {
-                SerialPortType::UsbPort(info) => {
-                    info.vid == 0x1 && info.pid == 0x123 //TODO make tf luna id
-                }
-                _ => false,
-            }
-        });
-
-        let port = port.ok_or(Error::PortNotFound)?;
+    pub fn new(port: PathBuf) -> Result<Self, Error> {
         let port = SerialStream::open(
-            &tokio_serial::new(port.port_name.clone(), 115200)
+            &tokio_serial::new(port.as_os_str().to_str().unwrap(), 115200)
                 .data_bits(DataBits::Eight)
                 .stop_bits(StopBits::One)
                 .parity(Parity::None),

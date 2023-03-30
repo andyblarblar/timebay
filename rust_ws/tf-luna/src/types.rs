@@ -66,21 +66,18 @@ pub struct NineByteCm {
 impl TryFrom<&[u8]> for NineByteCm {
     type Error = Error;
 
+    /// Parses a frame. You may omit the header bytes.
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        // Find first non header byte to allow for parsing when we skip one of them
-        let start_idx = value
-            .iter()
-            .position(|p| *p != 0x59)
-            .ok_or(Error::TooShort)?;
-
-        // No longer need to bounds check after this
-        if value[start_idx..].len() != 7 {
+        if value.len() < 7 {
             return Err(Error::TooShort);
         }
 
-        let dist = u16::from_le_bytes(value[start_idx..=start_idx + 1].try_into().unwrap());
-        let amp = u16::from_le_bytes(value[start_idx + 2..=start_idx + 3].try_into().unwrap());
-        let temp = u16::from_le_bytes(value[start_idx + 4..=start_idx + 5].try_into().unwrap());
+        // We don't care about the header bytes, so just slice them out (also allows users to omit them)
+        let value = &value[value.len() - 7..];
+
+        let dist = u16::from_le_bytes(value[0..=1].try_into().unwrap());
+        let amp = u16::from_le_bytes(value[2..=3].try_into().unwrap());
+        let temp = u16::from_le_bytes(value[4..=5].try_into().unwrap());
 
         // TODO use this, we may need to enable first
         let chksum = value[6];
