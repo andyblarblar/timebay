@@ -56,6 +56,9 @@ async fn main() {
     // Zero sensor
     let mut app = ApplicationContext::new(sensor, 10_000, 1000);
 
+    let zero = app.zero().await.expect("Failed initial zero!");
+    log::info!("Set initial zero to: {}", zero);
+
     let mut disconnected = false;
     loop {
         // Attempt reconnect on disconnect
