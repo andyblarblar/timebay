@@ -17,6 +17,8 @@ This document has some notes on the design of the system
 - Connected messages are sent continuously as a heartbeat, since when they are sent only once a late connecting GUI
   cannot
   discover the node.
+- If a node has an internet connection at boot, it will attempt to OTA update itself by git pulling the timebay repo,
+  then rebuilding the docker container.
 
 ## Networking choices
 
@@ -83,11 +85,15 @@ This document has some notes on the design of the system
       test the backend, that will implicitly also test the gui.
         - It also handles concurrency well, IMO
     - This is actually implemented by message passing between threads
-      - The gui runs on the main thread, the backend runs on the backend thread, and async events (MQTT, gui updates ect)
-      are processed on an eventloop thread.
-      - The gui inputs have callbacks that send messages to the async thread
-      - The async thread listens to mqtt and gui messages via polling, and merges the various sources to a common message
-      type sent to the backend thread
-    - When the backend thread receives a message, it passes it to an update function, which performs side effects on the apps state
-      - Update can also return async tasks to run on the async thread, if we have a long-running side effect like sending a mqtt message
+        - The gui runs on the main thread, the backend runs on the backend thread, and async events (MQTT, gui updates
+          ect)
+          are processed on an eventloop thread.
+        - The gui inputs have callbacks that send messages to the async thread
+        - The async thread listens to mqtt and gui messages via polling, and merges the various sources to a common
+          message
+          type sent to the backend thread
+    - When the backend thread receives a message, it passes it to an update function, which performs side effects on the
+      apps state
+        - Update can also return async tasks to run on the async thread, if we have a long-running side effect like
+          sending a mqtt message
     - After running update, the whole gui is popped, and a new gui is rendered and pushed.
