@@ -52,7 +52,7 @@ impl MockDistanceReader {
 #[async_trait]
 impl DistanceSensor for MockDistanceReader {
     async fn get_reading(&mut self) -> Result<DistanceReading, SensorError> {
-        tokio::time::sleep(Duration::from_millis(3000)).await;
+        tokio::time::sleep(Duration::from_millis(30)).await;
         Ok(DistanceReading::new(max(
             self.min,
             rand::thread_rng().next_u32() % self.max,
