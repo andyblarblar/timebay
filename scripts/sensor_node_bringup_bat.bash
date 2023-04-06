@@ -16,6 +16,6 @@ batctl if add "$device"
 ip l set bat0 up
 
 # Request an IP, will run in background as well
-dhcpcd -4 --noipv4ll --allowinterfaces bat0
+dhcpcd -4 --noipv4ll -t 0 --allowinterfaces bat0
 
 sensor_node
