@@ -47,7 +47,7 @@ impl MqttClient {
             server_id,
             &format!("node{}", node_id),
             &subs,
-            Some(conn_opt.connect_timeout(Duration::from_secs(2)).finalize()),
+            Some(conn_opt.connect_timeout(Duration::from_secs(10)).finalize()),
         )
         .await?;
 

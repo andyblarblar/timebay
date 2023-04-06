@@ -10,6 +10,7 @@ use crate::handlers::{handle_mqtt_msg, handle_trigger};
 use crate::mqtt::MqttClient;
 use log::LevelFilter::Trace;
 use simplelog::{ColorChoice, CombinedLogger, TerminalMode};
+use std::time::Duration;
 use tokio::join;
 
 #[tokio::main]
@@ -34,18 +35,26 @@ async fn main() {
             .unwrap();
         let server_host = std::env::var("BROKER_HOST").unwrap_or_else(|_| "localhost".to_string());
 
+        log::info!(
+            "Using a client id {} and broker ip {}",
+            node_id,
+            server_host
+        );
+
         let sensor_fut = sensor_connection::create_sensor();
 
         // Future that keeps polling until we connect to mqtt
         let client_fut = async {
             loop {
-                if let Ok(conn) =
-                    MqttClient::connect(node_id, &format!("mqtt://{}:1883", &server_host)).await
-                {
+                let res =
+                    MqttClient::connect(node_id, &format!("mqtt://{}:1883", &server_host)).await;
+                if let Ok(conn) = res {
                     log::info!("Successfully connected to broker");
                     break conn;
-                } else {
-                    log::error!("Timed out connecting to broker... (Do we have an IP on bat0?)");
+                } else if let Err(err) = res {
+                    log::error!("Timed out connecting to broker. Err {}", err);
+                    // Prevent spam if connect exits early because of lack of IP
+                    tokio::time::sleep(Duration::from_secs(2)).await;
                 }
             }
         };
@@ -54,7 +63,7 @@ async fn main() {
     log::info!("Sensor and mqtt both ready!");
 
     // Zero sensor
-    let mut app = ApplicationContext::new(sensor, 10_000, 100);
+    let mut app = ApplicationContext::new(sensor, 10_000, 200);
 
     let zero = app.zero().await.expect("Failed initial zero!");
     log::info!("Set initial zero to: {}", zero);
@@ -77,6 +86,7 @@ async fn main() {
 
         let rcv_fut = client.recv_mqtt_msg();
         let trg_fut = app.wait_for_trigger();
+        let timeout = tokio::time::sleep(Duration::from_secs(3));
 
         // Accept new messages and wait for sensor concurrently (branches are mutually exclusive)
         tokio::select! {
@@ -99,6 +109,10 @@ async fn main() {
                 if handle_trigger(&mut client, &mut app, res.unwrap()).await.is_err() {
                     disconnected = true;
                 }
+            },
+            // Timeout so we send heartbeat to client even if we dont manually zero or detect
+            _ = timeout => {
+                log::trace!("Timeout to send heartbeat...")
             }
         }
     }
