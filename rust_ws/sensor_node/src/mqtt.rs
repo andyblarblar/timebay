@@ -39,8 +39,8 @@ impl MqttClient {
         let msg = Disconnection(DisconnectionMessage::new(node_id));
         conn_opt.will_message(msg.try_into()?);
 
-        // Set a rather fast keep alive interval so that the gui can see disconnected sensors
-        conn_opt.keep_alive_interval(Duration::from_millis(500));
+        // Set keep alive to be rather long, since otherwise nodes drop too frequently
+        conn_opt.keep_alive_interval(Duration::from_millis(10_000));
 
         // Connect to broker
         let cli = timebay_common::mqttclient::MqttClient::connect(

@@ -54,7 +54,7 @@ async fn main() {
     log::info!("Sensor and mqtt both ready!");
 
     // Zero sensor
-    let mut app = ApplicationContext::new(sensor, 10_000, 1000);
+    let mut app = ApplicationContext::new(sensor, 10_000, 100);
 
     let zero = app.zero().await.expect("Failed initial zero!");
     log::info!("Set initial zero to: {}", zero);
@@ -65,6 +65,7 @@ async fn main() {
         if disconnected {
             log::error!("Disconnected from broker!");
             client.reconnect().await;
+            log::info!("Reconnected to broker!");
             disconnected = false;
         }
 
