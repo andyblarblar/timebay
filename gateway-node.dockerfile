@@ -4,7 +4,7 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
 
 # Install network tools and mosquitto
-RUN apt-get update && apt-get install -y iw iproute2 mosquitto batctl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y iw iproute2 mosquitto batctl chrony && rm -rf /var/lib/apt/lists/*
 
 COPY configs/mosquitto-gateway.conf /etc/mosquitto/conf.d/mosquitto.conf
 
@@ -16,6 +16,9 @@ COPY configs/dhcp-defaults.conf /etc/default/isc-dhcp-server
 
 # This config sets dhcp settings
 COPY configs/dhcp-gateway.conf /etc/dhcp/dhcpd.conf
+
+# Setup chrony to serve NTP as an authoritative server
+COPY configs/chronyd.conf /etc/chrony/chrony.conf
 
 COPY scripts/gateway_node_bringup.bash .
 COPY scripts/gateway_node_bringup_bat.bash .

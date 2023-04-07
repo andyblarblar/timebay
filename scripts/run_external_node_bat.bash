@@ -19,4 +19,4 @@ fi
 [ -n "$(docker images -q timebay:ext)" ] || docker build -t timebay:ext -f external-node.dockerfile .
 
 # Launch gateway node
-docker run --privileged --rm -t -d --network host timebay:ext
+docker run --privileged --rm -t -d --network host --cap-add SYS_TIME --add-host=gateway:192.168.0.1 timebay:ext

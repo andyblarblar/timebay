@@ -76,4 +76,9 @@ FPV setup.
 
 ## Time
 
-TODO go over NTP once we see if it works
+Because our system relies on timestamps to ensure proper lap times, we need to ensure all sensor nodes have synchronised 
+system clocks. To achieve this, the gateway serves NTP using chrony, spoofing a stra 1 server. This makes it an authoritative
+NTP server (although it has no right to be) within the timebay network. This is fine, because the only thing that matters 
+in our case is that the sensor nodes are synced relative to each other, not real time (or even the clients time). Chrony
+is also run on the sensor and external nodes as a client to the gateway server, allowing for stepping the system clock
+relatively aggressively, so we converge within the lifetime of the setup of a timebay session.  

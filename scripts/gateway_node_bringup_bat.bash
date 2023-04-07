@@ -35,5 +35,8 @@ touch /var/lib/dhcp/dhcpd.leases
 # Spawn dhcpd
 dhcpd
 
+# Serve authoritative NTP over chrony
+chronyd
+
 # bash will yield to stdin, which we dont connect, allowing this docker container to remain running forever
 bash

@@ -15,6 +15,9 @@ iw dev "$device" ibss join timebay 2412 HT40+
 batctl if add "$device"
 ip l set bat0 up
 
+# Get NTP time from gateway
+chronyd
+
 # Request an IP, will run in background as well
 dhcpcd -4 --noipv4ll --allowinterfaces bat0
 

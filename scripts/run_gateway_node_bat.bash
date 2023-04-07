@@ -19,4 +19,4 @@ fi
 [ -n "$(docker images -q timebay:gate)" ] || docker build -t timebay:gate -f gateway-node.dockerfile .
 
 # Launch gateway node
-docker run --privileged --rm -t -d --network host --entrypoint "/gateway_node_bringup_bat.bash" timebay:gate
+docker run --privileged --rm -t -d --network host --cap-add SYS_TIME --entrypoint "/gateway_node_bringup_bat.bash" timebay:gate

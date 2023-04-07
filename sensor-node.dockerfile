@@ -15,7 +15,10 @@ ENV BROKER_HOST=gateway
 RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
 
 # Install networking utils
-RUN apt-get update && apt-get install -y iw iproute2 dhcpcd5 batctl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y iw iproute2 dhcpcd5 batctl chrony && rm -rf /var/lib/apt/lists/*
+
+# Have chrony sync NTP to gateway
+COPY configs/chronyc.conf /etc/chrony/chrony.conf
 
 # Copy the executable
 COPY --from=builder /usr/local/cargo/bin/sensor_node /usr/local/bin/sensor_node

@@ -19,4 +19,4 @@ fi
 [ -n "$(docker images -q timebay:sensor)" ] || docker build -t timebay:sensor -f sensor-node.dockerfile .
 
 # Launch sensor node, restarting if it crashed
-docker run --privileged --rm --network host -e NODE_ID=1 -e BROKER_HOST=gateway --add-host=gateway:192.168.0.1 --volume /dev:/dev --entrypoint "/sensor_node_bringup_bat.bash" timebay:sensor
+docker run --privileged --rm --network host -e NODE_ID=1 -e BROKER_HOST=gateway --add-host=gateway:192.168.0.1 --cap-add SYS_TIME --volume /dev:/dev --entrypoint "/sensor_node_bringup_bat.bash" timebay:sensor
