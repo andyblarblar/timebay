@@ -109,8 +109,26 @@ impl Splits {
         if self.get_current_sector().nodes.1 == msg.node_id {
             log::trace!("Completed sector {}", self.current_sector);
 
-            // Use msg stamp to avoid including latency
-            self.get_current_sector().state = SectorState::Complete(msg.get_stamp());
+            // If our last sector time was after the current time, error since clocks are desynced
+            if self.current_sector > 0 {
+                let last_sect = self.sectors[self.current_sector - 1].state.clone();
+
+                let invalid = match last_sect {
+                    SectorState::Complete(last_time) => {
+                        msg.get_stamp().duration_since(last_time).is_err()
+                    }
+                    _ => false,
+                };
+
+                if invalid {
+                    log::error!("Time was earlier than previous sector end! Clocks are desynced");
+                    self.get_current_sector().state = SectorState::Invalidated;
+                } else {
+                    self.get_current_sector().state = SectorState::Complete(msg.get_stamp());
+                }
+            } else {
+                self.get_current_sector().state = SectorState::Complete(msg.get_stamp());
+            }
         }
         // If we skipped over a node, we need to invalidate passed sectors (handling edge case of last sector, where node id is descending)
         else if self.get_current_sector().nodes.1 < msg.node_id
