@@ -4,25 +4,22 @@ TODO
 
 ## Setup
 
+> Note: for many boards, there is a bit more setup to be done. This depends on the OS being run. For example
+> ubuntu machines need to remove a networkd config for adhoc networks. Instructions for boards can be found in /docs.
+
 ### Sensor nodes
 
 First, connect the tf-luna to the SBC via an adapter or GPIO. Also connect a mesh compatible Wi-Fi adapter, if the SBCs
-built in Wi-Fi is does not support mesh-point in its options (only if using 802.11s).
+does not have built in Wi-Fi.
 
 Next, install docker if it is not already.
 
 Next, connect the SBC to a network and clone timebay. In the timebay directory, run
 
-For 802.11s:
+For BATMAN-adv over IBSS:
 
 ```shell
-scripts/run_sensor_node.bash
-```
-
-For BATMAN-adv over IBSS (recommended):
-
-```shell
-scripts/run_sensor_node_bat.bash
+scripts/run_sensor_node_bat.bash <NODE ID>
 ```
 
 For
@@ -34,20 +31,14 @@ This script is intended to be run on boot of sensor node SBCs, ex. via crontab.
 
 ### Gateway node
 
-First, ensure a mesh compatible Wi-Fi interface is available (only if using 802.11s), and that docker is installed.
+First, ensure an adhoc compatible Wi-Fi interface is available, and that docker is installed.
 
 Ensure that the ethernet interface, the mesh interface (you can find this by running scripts/find_mesh_interface.py),
 and bat0 are all denied in the dhcpcd config.
 
 Clone timebay. In the timebay directory, run
 
-For 802.11s:
-
-```shell
-scripts/run_gateway_node.bash
-```
-
-For BATMAN-adv over IBSS (recommended):
+For BATMAN-adv over IBSS:
 
 ```shell
 scripts/run_gateway_node_bat.bash
@@ -80,6 +71,7 @@ so long as you have a local broker running.
 Both nodes dockerfiles are at the top level. All files used in them are in the top level /scripts, /configs ect. directories.
 
 Most scripts in /scripts have two versions, one for 802.11s, and one for batman-adv. All scripts for batman will have the 
-postfix '_bat'.
+postfix '_bat'. For reasons elaborated in the paper, 802.11s is not a viable protocol as is for Timebay. Its implementation is 
+left for reference, but is not intended for use.
 
 For convenience, there are build_x_node.bash scripts to build and tag the nodes correctly during development.
