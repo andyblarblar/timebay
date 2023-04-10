@@ -33,8 +33,12 @@ This script is intended to be run on boot of sensor node SBCs, ex. via crontab.
 
 First, ensure an adhoc compatible Wi-Fi interface is available, and that docker is installed.
 
-Ensure that the ethernet interface, the mesh interface (you can find this by running scripts/find_mesh_interface.py),
-and bat0 are all denied in the dhcpcd config.
+Also ensure bridging iptables are disabled via the kernel parameters:
+```
+net.bridge.bridge-nf-call-iptables=0
+net.bridge.bridge-nf-call-ip6tables=0
+net.bridge.bridge-nf-call-arptables=0
+```
 
 Clone timebay. In the timebay directory, run
 
