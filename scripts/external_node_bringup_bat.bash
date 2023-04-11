@@ -15,6 +15,10 @@ iw dev "$device" ibss join timebay 2412 HT40+
 batctl if add "$device"
 ip l set bat0 up
 
+# Attempt to lower latency
+batctl meshif bat0 orig_interval 50
+batctl meshif bat0 aggregation 0
+
 # Get NTP time from gateway
 chronyd
 
