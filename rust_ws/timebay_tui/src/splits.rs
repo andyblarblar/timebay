@@ -7,11 +7,12 @@ use cursive::views::{LinearLayout, Panel, TextView};
 use derive_more::{IsVariant, Unwrap};
 use itertools::izip;
 use std::collections::BTreeSet;
+use std::fmt::{Display, Formatter};
 use std::time::{Duration, SystemTime};
 use timebay_common::messages::DetectionMessage;
 
 /// Lap timing system implementation. This also serves as the splits widget via it's [`Splits::view`] function.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Splits {
     /// Nodes connected at the time of the start of this run
     nodes: BTreeSet<u16>,
@@ -80,6 +81,20 @@ impl Splits {
         }
     }
 
+    /// Disconnects a node from the system and recreates sectors.
+    ///
+    /// This function will only run if the system is in state [`SplitState::NotStarted`]. Otherwise,
+    /// the node will not be removed and the function will return false.
+    pub fn disconnect_node(&mut self, node: u16) -> bool {
+        if self.state.is_not_started() {
+            self.nodes.remove(&node);
+            self.sectors = Self::generate_sectors(&self.nodes);
+            true
+        } else {
+            false
+        }
+    }
+
     /// Handles a node triggering. Returns the resulting state.
     pub fn handle_node_trigger(&mut self, msg: DetectionMessage) -> SplitState {
         // Widget can exist while completed
@@ -133,6 +148,8 @@ impl Splits {
         // If we skipped over a node, we need to invalidate passed sectors (handling edge case of last sector, where node id is descending)
         else if self.get_current_sector().nodes.1 < msg.node_id
             && self.current_sector != self.sectors.len() - 1
+            || (self.sectors.last().unwrap().nodes.1 == msg.node_id
+                && self.current_sector != self.sectors.len() - 1)
         {
             log::trace!("Skipped a node!");
 
@@ -149,13 +166,19 @@ impl Splits {
                 .iter_mut()
                 .for_each(|s| s.state = SectorState::Invalidated);
         }
-        // If a passed node triggered again, just ignore (accept edge case if it was rejected above, since node ordering is reversed there)
+        // If a passed node triggered again, end run. This is done to ensure the run can be reset if last node dies. (accept edge case if it was rejected above, since node ordering is reversed there)
         else if self.get_current_sector().nodes.1 > msg.node_id
             || (self.get_current_sector().nodes.1 < msg.node_id
                 && self.current_sector == self.sectors.len() - 1)
         {
-            log::trace!("Passed node triggered");
-            return self.state.clone();
+            log::trace!("Passed node triggered!");
+
+            log::trace!("Invalidating remaining sectors");
+
+            // Invalidate all remaining sectors, as we assume we have looped over to a new run.
+            self.sectors[self.current_sector..]
+                .iter_mut()
+                .for_each(|s| s.state = SectorState::Invalidated);
         }
 
         // Find next valid sector, if any
@@ -258,6 +281,10 @@ impl Splits {
                                 },
                             )));
                         }
+                        // This handles if last lap had an invalid time, leading to no possible diff
+                        else {
+                            diffs.push(Panel::new(TextView::new("N/A")));
+                        }
                     } else {
                         diffs.push(Panel::new(TextView::new("N/A")));
                     }
@@ -313,6 +340,7 @@ impl Splits {
 
         let outer_layout = LinearLayout::vertical();
         outer_layout
+            .child(TextView::new(self.state.to_string()))
             .child(
                 Panel::new(sector_times)
                     .title("Sector times")
@@ -416,6 +444,20 @@ pub enum SplitState {
     Running(SystemTime),
     /// Lap is done, started at left time, ended at right time
     Completed(SystemTime, SystemTime),
+}
+
+impl Display for SplitState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                SplitState::NotStarted => "NOT STARTED",
+                SplitState::Running(_) => "RUNNING",
+                SplitState::Completed(_, _) => "COMPLETE",
+            }
+        )
+    }
 }
 
 /// Single timing unit in a split, bounded by 2 sensors

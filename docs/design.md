@@ -62,13 +62,17 @@ This document has some notes on the design of the system
     - If we jump a node, then mark any sector starting at the current segment and up to the segment ending with the node
       triggered as invalid.
         - We keep timing however, so we still get a final result
-    - If we go back a node, just ignore (likely someone just walking on course)
+    - If we go back a node, invalidate the rest of the run
+      - This covers the case where the last node dies, allowing the run to be reset to remove the dead node.
     - Node connection, disconnections, and reconnections are implicitly handled
         - New nodes are ignored
         - A node disconnecting will be handled by the following node being seen as a jump, invalidating the disconnected
           nodes sector
         - Because of this a node can disconnect and reconnect in the same run transparently so long as it triggers when
           it should
+        - When the lap is done, the next lap will use the currently connected nodes, removing the dead nodes from the last lap.
+        - If a new node is connected that becomes the first node, a full lap will be required before this lap can be recorded
+          because the lap will be started in sector 2.
     - A run is done when the last non-invalidated segment is complete
 - Sector times are calculated by the difference in time between the last completed sector and the next completed sector.
     - This means that if a sector is invalidated, the time spent in that sector will be rolled into the next.

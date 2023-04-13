@@ -128,6 +128,9 @@ impl App {
                 if !self.connected_nodes.remove(&id.node_id) {
                     log::error!("Disconnected a non-connected sensor node!");
                 }
+
+                // Disconnect node from splits if we haven't begun yet
+                self.lap.disconnect_node(id.node_id);
             }
             AppMessage::Detection(detc) => {
                 if self.lap.handle_node_trigger(detc).is_completed() {
