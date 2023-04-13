@@ -1,0 +1,11 @@
+[package]
+name = "node_sim"
+version = "0.1.0"
+edition = "2021"
+description = "Tool for simulating sensor nodes and their detections."
+
+[dependencies]
+timebay-common = { path = "../timebay-common" }
+paho-mqtt = "^0.12"
+tokio = { version = "^1", features = ['rt-multi-thread', 'macros'] }
+clap = { version = "4.2.1", features = ["derive"] }
