@@ -1,60 +1,19 @@
 # TIMEBAY
 
-TODO
+Timebay is a system that provides two services to student vehicles in testing:
+1. Sector timing
+2. Local network access
 
-## Setup
+It does this by creating a mesh network of sensor nodes, where each sensor node contains a mesh point for other sensor nodes, 
+vehicles, and clients to connect to. Timing data passes through this mesh, as does any user applications used, such as video feeds,
+ROS topics and more. To connect to the timing services of Timebay, a TUI is provided.
 
-> Note: for many boards, there is a bit more setup to be done. This depends on the OS being run. For example
-> ubuntu machines need to remove a networkd config for adhoc networks. Instructions for boards can be found in /docs.
+For more details on the design and operations of Timebay, please see [the docs](./docs) and [the paper]().
 
-### Sensor nodes
+## Setup and Operation
 
-First, connect the tf-luna to the SBC via an adapter or GPIO. Also connect a mesh compatible Wi-Fi adapter, if the SBCs
-does not have built in Wi-Fi.
-
-Next, install docker if it is not already.
-
-Next, connect the SBC to a network and clone timebay. In the timebay directory, run
-
-For BATMAN-adv over IBSS:
-
-```shell
-scripts/run_sensor_node_bat.bash <NODE ID>
-```
-
-For
-This will build (if first time) and run the sensor node docker container.
-This docker container will handle the connection to the laser sensor as well
-as setting up the mesh.
-
-This script is intended to be run on boot of sensor node SBCs, ex. via crontab.
-
-### Gateway node
-
-First, ensure an adhoc compatible Wi-Fi interface is available, and that docker is installed.
-
-Also ensure bridging iptables are disabled via the kernel parameters:
-```
-net.bridge.bridge-nf-call-iptables=0
-net.bridge.bridge-nf-call-ip6tables=0
-net.bridge.bridge-nf-call-arptables=0
-```
-
-Clone timebay. In the timebay directory, run
-
-For BATMAN-adv over IBSS:
-
-```shell
-scripts/run_gateway_node_bat.bash
-```
-
-This will build (if first time) and run the gateway node docker container.
-This docker container will handle setting up the mesh, the bridge to ethernet, and
-the mosquitto and dhcp daemons.
-
-This script is intended to be run on boot of the gateway node SBC, ex. via crontab.
-
-TODO add client
+To setup your own instance of Timebay or maintain an existing one,
+please see [this document](docs/le-potato-setup.md).
 
 ## Development
 
@@ -67,8 +26,8 @@ All of these applications can be developed without the nodes themselves, as they
 To run the sensor node using a fake instead of a real tf-luna, compile with the `no_sensor` feature enabled. This will
 read a trigger every 3 seconds.
 
-To integration test, you can just run the sensor node using its docker container and connect with the client on localhost,
-so long as you have a local broker running.
+To integration test, there is a node simulator in node_sim. This can be used to test edge cases in the GUI or potential future
+consumers of the detection data.
 
 ## Docker
 

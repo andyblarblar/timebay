@@ -1,6 +1,6 @@
 # Network
 
-TODO go over the overall architecture
+![](network_diag.drawio.png)
 
 ## Mesh (Layer 2)
 
