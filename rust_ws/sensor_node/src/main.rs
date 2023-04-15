@@ -79,8 +79,10 @@ async fn main() {
         }
 
         // Send connected messages as a sort of heartbeat, allowing for late connecting clients to discover us
-        if client.pub_connected_msg().await.is_err() {
+        let res = client.pub_connected_msg().await;
+        if res.is_err() {
             disconnected = true;
+            log::error!("Failed connect heartbeat with: {}", res.unwrap_err());
             continue;
         }
 

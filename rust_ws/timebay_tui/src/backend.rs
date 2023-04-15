@@ -83,9 +83,21 @@ pub fn backend_thread(
                     app.app.view()
                 };
 
-                // Remove all layers
-                while s.pop_layer().is_some() {}
+                // Remove all layers, then restore all but the apps view (which is always the last)
+                // This is done to preserve pop ups while still rendering the splits
+                let mut layers = vec![];
+                while let Some(layer) = s.pop_layer() {
+                    layers.push(layer);
+                }
+
                 s.add_layer(view);
+
+                // Restore popups
+                let len = layers.len();
+                layers
+                    .into_iter()
+                    .take(len - 1)
+                    .for_each(|l| s.add_layer(l));
             }))
             .unwrap();
     }

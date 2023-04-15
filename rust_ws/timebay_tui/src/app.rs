@@ -68,7 +68,8 @@ impl App {
     /// Generates the main body view based off current app state
     pub fn view(&self) -> impl cursive::view::View {
         if self.state.is_connecting() {
-            LinearLayout::horizontal().child(Dialog::around(TextView::new("Connecting to gateway...")))
+            LinearLayout::horizontal()
+                .child(Dialog::around(TextView::new("Connecting to gateway...")))
         } else {
             LinearLayout::horizontal()
                 .child(
@@ -133,6 +134,13 @@ impl App {
                 self.lap.disconnect_node(id.node_id);
             }
             AppMessage::Detection(detc) => {
+                log::trace!(
+                    "Node {} triggered with dist: {} and stamp: {}.{}",
+                    detc.node_id,
+                    detc.dist,
+                    detc.stamp_s,
+                    detc.stamp_ns
+                );
                 if self.lap.handle_node_trigger(detc).is_completed() {
                     // Swap current lap to last lap when done
                     self.last_last_lap = self.last_lap.clone();

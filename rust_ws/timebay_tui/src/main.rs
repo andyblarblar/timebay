@@ -10,8 +10,9 @@ use crate::backend::SharedState;
 use cursive::menu::Tree;
 use cursive::traits::*;
 use cursive::views::Dialog;
+use cursive::Cursive;
 use flexi_logger::filter::LogLineWriter;
-use flexi_logger::{DeferredNow, Logger};
+use flexi_logger::{DeferredNow, FileSpec, Logger};
 use log::Record;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
@@ -27,17 +28,14 @@ fn main() {
     // TODO replace with default logger once https://github.com/gyscos/cursive/pull/719 is merged
     Logger::try_with_env_or_str("trace")
         .expect("Could not create Logger from environment :(")
-        .log_to_writer(cursive_flexi_logger_view::cursive_flexi_logger(&siv))
+        .log_to_file_and_writer(
+            FileSpec::default().directory("timebay_tui_logs"),
+            cursive_flexi_logger_view::cursive_flexi_logger(&siv),
+        )
         .filter(Box::new(PhaoMqttFilter {}))
-        .format(flexi_logger::colored_with_thread)
+        .format(flexi_logger::colored_detailed_format)
         .start()
         .expect("failed to initialize logger!");
-
-    siv.add_global_callback('q', cursive::Cursive::quit);
-    siv.add_global_callback(
-        '~',
-        cursive_flexi_logger_view::toggle_flexi_logger_debug_console,
-    );
 
     // Communications between gui and background thread
     let (backend_tx, backend_rx) = crossfire::mpsc::bounded_tx_blocking_rx_future(10);
@@ -50,24 +48,33 @@ fn main() {
     let shared = Arc::new(Mutex::new(SharedState { app, backend_tx }));
     siv.set_user_data(shared.clone());
 
+    let zero_sensors = |s: &mut Cursive| {
+        // Because backend handles this message, if we aren't connected nothing will happen
+        let tx = s.user_data::<Arc<Mutex<SharedState>>>().unwrap();
+        let tx = tx.lock().unwrap();
+        tx.backend_tx.send(AppMessage::SendZero).unwrap();
+    };
+
+    siv.add_global_callback('q', cursive::Cursive::quit);
+    siv.add_global_callback(
+        '~',
+        cursive_flexi_logger_view::toggle_flexi_logger_debug_console,
+    );
+    siv.add_global_callback('z', zero_sensors);
+
     // Setup top menubar, since the app only gives the body
     siv.menubar()
         .add_subtree(
             "Actions",
-            Tree::new().with(|tree| {
-                tree.add_leaf("Zero Sensors", |s| {
-                    // Because backend handles this message, if we aren't connected nothing will happen
-                    let tx = s.user_data::<Arc<Mutex<SharedState>>>().unwrap();
-                    let tx = tx.lock().unwrap();
-                    tx.backend_tx.send(AppMessage::SendZero).unwrap();
-                })
-            }),
+            Tree::new().with(|tree| tree.add_leaf("Zero Sensors", zero_sensors)),
         )
         .add_subtree(
             "Help",
             Tree::new().with(|tree| {
                 tree.add_leaf("Controls", |s| {
-                    s.add_layer(Dialog::info("Press Q to quit, ~ for debug logs"))
+                    s.add_layer(Dialog::info(
+                        "Press Q to quit, ~ for debug logs, z to zero sensors",
+                    ))
                 })
             }),
         );
@@ -98,7 +105,7 @@ impl flexi_logger::filter::LogLineFilter for PhaoMqttFilter {
         record: &Record,
         log_line_writer: &dyn LogLineWriter,
     ) -> std::io::Result<()> {
-        if !record.target().contains("paho") && !record.target().contains("view"){
+        if !record.target().contains("paho") && !record.target().contains("view") {
             log_line_writer.write(now, record)
         } else {
             Ok(())
