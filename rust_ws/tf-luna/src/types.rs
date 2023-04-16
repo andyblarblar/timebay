@@ -79,8 +79,19 @@ impl TryFrom<&[u8]> for NineByteCm {
         let amp = u16::from_le_bytes(value[2..=3].try_into().unwrap());
         let temp = u16::from_le_bytes(value[4..=5].try_into().unwrap());
 
-        // TODO use this, we may need to enable first
         let chksum = value[6];
+
+        // Calculate checksum of header to temp_h
+        let mut cumsum = 0x59u32 + 0x59;
+        for byte in value.iter().take(6) {
+            cumsum += *byte as u32;
+        }
+        // Get lower 8 bits
+        let frame_sum = (cumsum & 0xFF) as u8;
+
+        if frame_sum != chksum {
+            return Err(Error::ChecksumFailed);
+        }
 
         Ok(Self { dist, amp, temp })
     }

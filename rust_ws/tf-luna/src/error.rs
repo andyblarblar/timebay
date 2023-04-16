@@ -14,4 +14,6 @@ pub enum Error {
     IoErr(#[from] std::io::Error),
     #[error("Tf luna port not found")]
     PortNotFound,
+    #[error("Checksum failed")]
+    ChecksumFailed
 }

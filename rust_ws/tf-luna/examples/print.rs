@@ -8,8 +8,12 @@ async fn main() {
 
     println!("Connected!");
     loop {
-        let reading = sensor.read().await.unwrap();
+        let reading = sensor.read().await;
 
-        println!("Reading: {:?}", reading);
+        if let Err(err) = reading {
+            println!("Errored with: {}", err)
+        } else {
+            println!("Reading: {:?}", reading);
+        }
     }
 }
