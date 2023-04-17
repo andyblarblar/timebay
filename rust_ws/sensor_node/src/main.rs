@@ -65,8 +65,9 @@ async fn main() {
     // Zero sensor
     let mut app = ApplicationContext::new(sensor, 10_000, 200);
 
-    let zero = app.zero().await.expect("Failed initial zero!");
-    log::info!("Set initial zero to: {}", zero);
+    while let Err(err) = app.zero().await {
+        log::error!("Failed to zero sensor with: {:?}", err);
+    }
 
     let mut disconnected = false;
     loop {
@@ -99,13 +100,21 @@ async fn main() {
                 }
 
                 let msg = res.unwrap();
-                if handle_mqtt_msg(msg, &mut client, &mut app).await.is_err() {
-                    disconnected = true;
+                let res = handle_mqtt_msg(msg, &mut client, &mut app).await;
+                if let Err(err) = res {
+                    match err {
+                        error::Error::SensorErr(err) => {
+                            if let dist_sensor::SensorError::LunaErr(tf_luna::error::Error::ChecksumFailed) = err {
+                                log::error!("Checksum Failed!")
+                            }
+                        }
+                        _ => disconnected = true
+                    }
                 }
             },
             res = trg_fut => {
-                if res.is_err() {
-                    log::error!("Sensor erred while reading!");
+                if let Err(err) = res {
+                    log::error!("Sensor erred while reading: {}", err);
                     continue
                 }
                 if handle_trigger(&mut client, &mut app, res.unwrap()).await.is_err() {

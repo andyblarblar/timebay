@@ -8,6 +8,7 @@ derive_more = "^0"
 tokio-serial = "5.4.4"
 thiserror = "^1"
 tokio = { version = "^1", features = ['io-util'] }
+log = '0.4.17'
 
 [dev-dependencies]
 tokio = { version = "^1", features = ['rt-multi-thread', 'macros'] }

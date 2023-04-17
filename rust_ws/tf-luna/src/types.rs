@@ -90,6 +90,7 @@ impl TryFrom<&[u8]> for NineByteCm {
         let frame_sum = (cumsum & 0xFF) as u8;
 
         if frame_sum != chksum {
+            log::error!("Data:{:?} computed sum:{} after and:{}", value, cumsum, frame_sum);
             return Err(Error::ChecksumFailed);
         }
 

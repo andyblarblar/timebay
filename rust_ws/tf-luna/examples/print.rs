@@ -7,13 +7,15 @@ async fn main() {
     let mut sensor = TfLuna::new(PathBuf::from("/dev/ttyUSB0")).unwrap();
 
     println!("Connected!");
+    let mut err_cnt = 0;
     loop {
         let reading = sensor.read().await;
 
         if let Err(err) = reading {
-            println!("Errored with: {}", err)
+            println!("Errored with: {}", err);
+            err_cnt += 1;
         } else {
-            println!("Reading: {:?}", reading);
+            println!("Reading: {:?} Err count: {}", reading, err_cnt);
         }
     }
 }
