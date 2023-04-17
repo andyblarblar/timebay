@@ -16,6 +16,6 @@ ip link set up "$device"
 chronyd
 
 # Request an IP, will run in background as well
-dhcpcd -4 --noipv4ll --allowinterfaces bat0
+dhcpcd -4 --noipv4ll --allowinterfaces "$device"
 
 sensor_node
