@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Script that runs on boot of the sensor node docker container
+# Script that runs on boot of the external node, connecting that user to the network
 
-# Find interface with mesh support
-device="$(python3 find_mesh_interface.py)"
+# Find interface with adhoc support
+device="$(python3 find_adhoc_interface.py)"
 
-# Setup mesh, ip will be set by dhcpcd
+# Setup mesh
 ip link set down "$device"
 iw dev "$device" set type mesh
 iw dev "$device" set meshid timebay
@@ -18,4 +18,4 @@ chronyd
 # Request an IP, will run in background as well
 dhcpcd -4 --noipv4ll --allowinterfaces bat0
 
-sensor_node
+bash
