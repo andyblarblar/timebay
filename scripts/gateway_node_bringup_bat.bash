@@ -16,7 +16,7 @@ batctl if add "$device"
 ip l set bat0 up
 
 # Attempt to lower latency
-batctl meshif bat0 orig_interval 50
+batctl meshif bat0 orig_interval 500
 batctl meshif bat0 aggregation 0
 
 # Bridge the mesh and eth
