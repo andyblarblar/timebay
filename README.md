@@ -34,7 +34,7 @@ consumers of the detection data.
 Both nodes dockerfiles are at the top level. All files used in them are in the top level /scripts, /configs ect. directories.
 
 Most scripts in /scripts have two versions, one for 802.11s, and one for batman-adv. All scripts for batman will have the 
-postfix '_bat'. For reasons elaborated in the paper, 802.11s is not a viable protocol as is for Timebay. Its implementation is 
-left for reference, but is not intended for use.
+postfix '_bat'. Both BATMAN-adv and 802.11s have their quirks. 802.11s works much better overall, but is pretty strict when it
+comes to compatible hardware. BATMAN on the other hand is very compatible, but suffers from huge packet loss.
 
 For convenience, there are build_x_node.bash scripts to build and tag the nodes correctly during development.

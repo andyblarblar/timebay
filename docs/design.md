@@ -27,13 +27,16 @@ This document has some notes on the design of the system
 - Mesh interface config is done in the docker container, so that it can be run on any linux system without the need
   to worry about configuring it beforehand.
     - This is possible by using network=host
-- While 802.11s was initially chosen, it appears that the ability to bridge mesh interfaces was never actually
-  implemented
-  , despite being in the docs. [see](https://www.spinics.net/lists/linux-wireless/msg19548.html).
-    - This manifested as ARP frames being transmitted across the mesh, but not to the bridge (verified with wireshark).
-      This prevented eth0 from
-      being connected to the mesh, as well as DHCP from being served.
-    - 80211s on linux also seems pretty abandoned, with poor driver support (ex. rpi)
+- ~~While 802.11s was initially chosen, it appears that the ability to bridge mesh interfaces was never actually~~
+  ~~implemented~~
+  ~~, despite being in the docs. [see](https://www.spinics.net/lists/linux-wireless/msg19548.html).~~
+    ~~- This manifested as ARP frames being transmitted across the mesh, but not to the bridge (verified with wireshark).~~
+      ~~This prevented eth0 from~~
+     ~~being connected to the mesh, as well as DHCP from being served.~~
+   ~~- 80211s on linux also seems pretty abandoned, with poor driver support (ex. rpi)~~
+- So it turns out that under the rt2080 drivers, bridging is broken. On other drivers though, it works fine.
+  - This is very important, since it turns out that BATMAN-adv causes massive packet loss when more than 2 nodes exist in the mesh
+  - Because of this, 802.11s is likely the preferred protocol when drivers are available. 
 - BATMAN-adv over IBSS is added as an alternative to 80211s as the meshing layer for timebay
     - Running over an IBSS means pretty much any interface can be used, although it does lock us into linux (so no MCU)
     - It also puts [an emphasis](https://www.open-mesh.org/projects/batman-adv/wiki/Wiki) on being able to be bridged,

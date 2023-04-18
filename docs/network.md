@@ -25,13 +25,7 @@ on something like an MCU. Due to its lack of open implementations however, this 
 nodes need
 to be running linux.
 
-The biggest issue with 802.11s for timebay however is that it currently cannot be bridged with an ethernet interface in
-linux,
-despite the docs saying it can. This is a major issue for us, since that makes the gateway node completely impossible.
-Because of this,
-I've kept the 802.11s mesh implementation of timebay around for reference should this be fixed, but really only intend
-on the
-batman implementation to be used.
+Mesh support is super spotty, with some drivers that claim to support mesh point (rt2080) not fully implementing the protocol.
 
 ### BATMAN-adv
 
@@ -56,8 +50,8 @@ to debug, but also means that we can directly bridge the interface without anyon
 gateway
 node, and works very smoothly.
 
-I've also noticed a nice increase in throughput after changing over to BATMAN, going from around 90kbps-5mbps under mesh
-to 5mbps-Link Bandwidth in BATMAN, depending on environment.
+Unfortunately, BATMAN-adv in my experience has issues with something causing massive packet loss. This may be an instance
+of the hidden terminal problem, but I'm not certain. While this doesn't make BATMAN unusable, it nearly does.
 
 ## IP
 

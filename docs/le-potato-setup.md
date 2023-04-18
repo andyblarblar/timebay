@@ -13,8 +13,8 @@ This is a guide to setting up all nodes using [Le Potatoes](https://libre.comput
 6. reboot
 7. Clone timebay
 8. Add a cronjob to enable uarta with: `ltdo enable uarta` on boot (must be in superusers crontab)
-9. Delete /usr/lib/systemd/network/80-adhoc (If this is not done, then the wireless adapter will be dropped from bat0)
-10. Add a cronjob to run scripts/run_sensor_node_bat.bash Node_ID or scripts/run_gateway_node_bat.bash depending on node type on boot
+9. Delete /usr/lib/systemd/network/80-adhoc (If this is not done, then the wireless adapter will be dropped from bat0 if BATMAN is used)
+10. Add a cronjob to run scripts/run_sensor_node.bash Node_ID or scripts/run_gateway_node.bash depending on node type on boot
     1. Ensure this node id is unique, or else the system will not work correctly
 11. If setting up a gateway node, apply the kernel parameters:
      ```
