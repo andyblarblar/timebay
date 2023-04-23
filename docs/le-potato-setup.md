@@ -1,4 +1,7 @@
 # Le-Potato setup
+
+![](paper_TeX/images/sensor_node.jpg)
+
 This is a guide to setting up all nodes using [Le Potatoes](https://libre.computer/products/aml-s905x-cc/).
 
 > This guide will be assuming ubuntu 22.04 server, as described in the libre compute docs

@@ -1,0 +1,154 @@
+@ARTICLE{1509968,
+  author={Akyildiz, I.F. and Xudong Wang},
+  journal={IEEE Communications Magazine}, 
+  title={A survey on wireless mesh networks}, 
+  year={2005},
+  volume={43},
+  number={9},
+  pages={S23-S30},
+  doi={10.1109/MCOM.2005.1509968}}
+
+ @misc{open, title={Mesh}, url={https://www.open-mesh.org/projects/open-mesh/wiki}, journal={Open}} 
+
+ @misc{en:developers:documentation:ieee80211:802.11s, 
+    title={Linux wireless}, 
+    url={https://wireless.wiki.kernel.org/en/developers/documentation/ieee80211/802.11s}, journal={en:developers:documentation:ieee80211:802.11s [Linux Wireless]}} 
+
+     @misc{haque_abdelgawad_yelamarthi_2022, title={Comprehensive performance analysis of zigbee communication: An experimental approach with XBee S2C module}, url={https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9105712/}, journal={Sensors (Basel, Switzerland)}, publisher={U.S. National Library of Medicine}, author={Haque, Khandaker Foysal and Abdelgawad, Ahmed and Yelamarthi, Kumar}, year={2022}, month={Apr}} 
+
+     @INPROCEEDINGS{9297296,
+  author={Beke, Tibor and Dijk, Esko and Ozcelebi, Tanir and Verhoeven, Richard},
+  booktitle={2020 International Symposium on Networks, Computers and Communications (ISNCC)}, 
+  title={Time Synchronization in IoT Mesh Networks}, 
+  year={2020},
+  volume={},
+  number={},
+  pages={1-8},
+  doi={10.1109/ISNCC49221.2020.9297296}}
+
+  @article{elson2002fine,
+  title={Fine-grained network time synchronization using reference broadcasts},
+  author={Elson, Jeremy and Girod, Lewis and Estrin, Deborah},
+  journal={ACM SIGOPS Operating Systems Review},
+  volume={36},
+  number={SI},
+  pages={147--163},
+  year={2002},
+  publisher={ACM New York, NY, USA}
+}
+
+@article{ping2003delay,
+  title={Delay measurement time synchronization for wireless sensor networks},
+  author={Ping, Su},
+  journal={Intel Research Berkeley Lab},
+  volume={6},
+  pages={1--10},
+  year={2003},
+  publisher={Citeseer}
+}
+
+@inproceedings{maroti2004flooding,
+  title={The flooding time synchronization protocol},
+  author={Mar{\'o}ti, Mikl{\'o}s and Kusy, Branislav and Simon, Gyula and L{\'e}deczi, Akos},
+  booktitle={Proceedings of the 2nd international conference on Embedded networked sensor systems},
+  pages={39--49},
+  year={2004}
+}
+
+@inproceedings{ganeriwal2003timing,
+  title={Timing-sync protocol for sensor networks},
+  author={Ganeriwal, Saurabh and Kumar, Ram and Srivastava, Mani B},
+  booktitle={Proceedings of the 1st international conference on Embedded networked sensor systems},
+  pages={138--149},
+  year={2003}
+}
+
+@inproceedings{10.1145/1644038.1644062,
+author = {Koo, Jinkyu and Panta, Rajesh K. and Bagchi, Saurabh and Montestruque, Luis},
+title = {A Tale of Two Synchronizing Clocks},
+year = {2009},
+isbn = {9781605585192},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1644038.1644062},
+doi = {10.1145/1644038.1644062},
+abstract = {A specific application for wastewater monitoring and actuation, called CSOnet, deployed city-wide in a mid-sized US city, South Bend, Indiana, posed some challenges to a time synchronization protocol. The nodes in CSOnet have a low duty cycle (2% in current deployment) and use an external clock, called the Real Time Clock (RTC), for triggering the sleep and the wake-up. The RTC has a very low drift (2 ppm) over the wide range of temperature fluctuations that the CSOnet nodes have, while having a low power consumption (0.66 mW). However, these clocks will still have to be synchronized occasionally during the long lifetime of the CSOnet nodes and this was the problem we confronted with our time synchronization protocol. The RTC to fit within the power and the cost constraints makes the tradeoff of having a coarse time granularity of only 1 second. Therefore, it is not sufficient to synchronize the RTC itself---that would mean a synchronization error of up to 1 second would be possible even with a perfect synchronization protocol. This would be unacceptable for the low duty cycle operation---each node stays awake for only 6 seconds in a 5 minute time window. This was the first of three challenges for time synchronization. The second challenge is that the synchronization has to be extremely fast since ideally the entire network should be synchronized during the 6 second wake-up period. Third, the long range radio used for the metropolitan-scale CSOnet does not make its radio stack software available, as is seen with several other radios for long-range ISM band RF communication. Therefore, a common technique for time synchronization---MAC layer time-stamping---cannot be used. Additionally, MAC layer time-stamping is known to be problematic with high speed radios (even at 250 kbps).We solve these challenges and design a synchronization protocol called Harmonia. It has three design innovations. First, it uses the finely granular microcontroller clock to achieve synchronization of the RTC, such that the synchronization error, despite the coarse granularity of the RTC, is in the microsecond range. Second, Harmonia pipelines the synchronization messages through the network resulting in fast synchronization of the entire network. Third, Harmonia provides failure handling for transient node and link failures such that the network is not overburdened with synchronization messages and the recovery is done locally. We evaluate Harmonia on CSOnet nodes and compare the two metrics of synchronization error and synchronization speed with FTSP. It performs slightly worse in the former and significantly better in the latter.},
+booktitle = {Proceedings of the 7th ACM Conference on Embedded Networked Sensor Systems},
+pages = {239–252},
+numpages = {14},
+keywords = {low duty cycle, sensor, synchronization},
+location = {Berkeley, California},
+series = {SenSys '09}
+}
+}
+
+
+
+@article{article,
+author = {Hiertz, Guido and Denteneer, T. and Max, Sebastian and Taori, Rakesh and Cardona, Javier and Berlemann, Lars and Walke, B.},
+year = {2010},
+month = {03},
+pages = {104 - 111},
+title = {IEEE 802.11s: the WLAN mesh standard},
+volume = {17},
+journal = {Wireless Communications, IEEE},
+doi = {10.1109/MWC.2010.5416357}
+}
+
+@techreport{RFC5905,
+  author = {D. Mills and J. Martin and J. Burbank and W. Kasch},
+  title = {Network Time Protocol Version 4: Protocol and Algorithms Specification},
+  howpublished = {Internet Requests for Comments},
+  type = {RFC},
+  number = {5905},
+  year = {2010},
+  month = {June},
+  issn = {2070-1721},
+  publisher = {RFC Editor},
+  institution = {RFC Editor},
+  url = {http://www.rfc-editor.org/rfc/rfc5905.txt},
+  note = {\url{http://www.rfc-editor.org/rfc/rfc5905.txt}},
+}
+
+@inproceedings{zeiger2009mobile,
+  title={Mobile robot teleoperation via wireless multihop networks-parameter tuning of protocols and real world application scenarios},
+  author={Zeiger, Florian and Kr{\"a}mer, Nikolaus and Sauer, Markus and Schilling, Klaus},
+  booktitle={Informatics in Control, Automation and Robotics: Selcted Papers from the International Conference on Informatics in Control, Automation and Robotics 2008},
+  pages={139--152},
+  year={2009},
+  organization={Springer}
+}
+
+ @misc{tweaking, title={Open-mesh " Batman-adv}, url={https://www.open-mesh.org/projects/batman-adv/wiki/Tweaking#originator-interval}, journal={Tweaking - batman-adv - Open Mesh}} 
+
+  @misc{motec, title={Motec; current range; directory}, url={https://www.motec.com.au/laptiming-currentrange/laptiming-directory/}, journal={Motec}} 
+
+  @INPROCEEDINGS{8746361,
+  author={Sliwa, Benjamin and Falten, Stefan and Wietfeld, Christian},
+  booktitle={2019 IEEE 89th Vehicular Technology Conference (VTC2019-Spring)}, 
+  title={Performance Evaluation and Optimization of B.A.T.M.A.N. V Routing for Aerial and Ground-Based Mobile Ad-Hoc Networks}, 
+  year={2019},
+  volume={},
+  number={},
+  pages={1-7},
+  doi={10.1109/VTCSpring.2019.8746361}}
+
+@INPROCEEDINGS{8421863,
+  author={Liu, Ligang and Liu, Jianpo and Qian, Hanwang and Zhu, Jun},
+  booktitle={2018 5th IEEE International Conference on Cyber Security and Cloud Computing (CSCloud)/2018 4th IEEE International Conference on Edge Computing and Scalable Cloud (EdgeCom)}, 
+  title={Performance Evaluation of BATMAN-Adv Wireless Mesh Network Routing Algorithms}, 
+  year={2018},
+  volume={},
+  number={},
+  pages={122-127},
+  doi={10.1109/CSCloud/EdgeCom.2018.00030}}
+
+@INPROCEEDINGS{8417706,
+  author={Mian, Adnan Noor and Liaqat, Tayyaba and Hameed, Abdul},
+  booktitle={2018 IEEE 87th Vehicular Technology Conference (VTC Spring)}, 
+  title={Testbed Analysis of 2-Hop IEEE 802.11s Network for Supporting IP Services under Mobility}, 
+  year={2018},
+  volume={},
+  number={},
+  pages={1-5},
+  doi={10.1109/VTCSpring.2018.8417706}}
