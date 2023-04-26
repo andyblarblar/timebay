@@ -55,10 +55,10 @@ impl<T: DistanceSensor> ApplicationContext<T> {
 
             if should_trigger(self.zero, self.threshold, reading.dist) {
                 /* Prevent the sensor from triggering on a slow passing car over and over again by enforcing
-                that each successful trigger must be followed by a 200ms period of no triggers before triggering again */
+                that each successful trigger must be followed by a 2s period of no triggers before triggering again */
                 let time_since_last_detection = Instant::now().duration_since(self.last_detection);
                 self.last_detection = Instant::now();
-                if time_since_last_detection.as_millis() < 200 {
+                if time_since_last_detection.as_millis() < 2000 {
                     log::trace!("Rejecting trigger due to debounce");
                     continue;
                 }

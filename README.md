@@ -57,6 +57,7 @@ Set up:
    1. If sensor nodes are not in order, then the system will assume the vehicle is cutting track
    2. Ensure all sensors have a solid object within 10m, so they can properly zero
    3. Ensure all sensors have at least 20cm between them and the passing vehicle
+   4. Ensure laps will take greater than 2s, else the debouncing on the sensor nodes will cause the vehicle to be ignored
 3. Connect your computer to the Ethernet port on the gateway node
 4. Run the TUI with `timebay_tui 192.168.0.1`
    1. This may display 'Connecting to broker...' if the system has not booted yet, or you have not received an IP. This will resolve itself in minutes. 
