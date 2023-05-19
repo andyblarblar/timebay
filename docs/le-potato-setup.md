@@ -29,6 +29,9 @@ This is a guide to setting up all nodes using [Le Potatoes](https://libre.comput
 12. Finally, reboot with an ethernet cable connected to an uplink, and wait 10 minutes or so for the docker container to complete its first
     build. The potato is now ready!
 
+## Box
+If you want a box to hold the node in use, see the resources in [the CAD folder](../CAD).
+
 ## Running
 To run the node after the above is setup:
 1. Connect the Wi-Fi adapter to a usb port
@@ -49,6 +52,7 @@ To update the potato to the latest Timebay version:
   - This indicates a power issue, so you'll need to make sure your source has >1A of current @ 5v. USB cables have been an issue for me before, so check that too.
 - To debug most networking issues, just connect the Potato to a monitor. Docker logs can display the sensor node executables output.
 - If the gateway node has a working layer 2 but not layer 3, (IE wireshark shows ARP but not pings), ensure the kernel parameters were actually applied.
+- If the sensors appear to be ignoring the vehicle, ensure they both have an object within 10m, and that object is > 20cm away from the vehicle.
 
 ### Notes
 - If you want to create many sensor nodes, it is possible to set one node up

@@ -52,7 +52,7 @@ fn main() {
         // Because backend handles this message, if we aren't connected nothing will happen
         let tx = s.user_data::<Arc<Mutex<SharedState>>>().unwrap();
         let tx = tx.lock().unwrap();
-        tx.backend_tx.send(AppMessage::SendZero).unwrap();
+        while tx.backend_tx.send(AppMessage::SendZero).is_err() {}
     };
 
     siv.add_global_callback('q', cursive::Cursive::quit);

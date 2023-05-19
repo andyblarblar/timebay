@@ -38,7 +38,10 @@ pub fn backend_thread(
     rt.spawn(async move {
         let mut mqtt_stream = pin!(mqtt_subscription(broker_host));
         while let Some(msg) = mqtt_stream.next().await {
-            b_tx_mqtt.send(msg).await.unwrap();
+            let res = b_tx_mqtt.send(msg).await;
+            if let Err(err) = res {
+                log::error!("MQTT thread queue error! {}", err);
+            }
         }
     });
 
@@ -46,7 +49,10 @@ pub fn backend_thread(
     let b_tx_gui = backend_tx.clone();
     rt.spawn(async move {
         while let Ok(msg) = gui_rx.recv().await {
-            b_tx_gui.send(msg).await.unwrap();
+            let res = b_tx_gui.send(msg).await;
+            if let Err(err) = res {
+                log::error!("GUI thread queue error! {}", err);
+            }
         }
     });
 

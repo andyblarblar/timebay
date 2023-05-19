@@ -32,7 +32,7 @@ What Timebay should not be used for:
 - Non-jitter-resistant networking to the vehicle in motion
   - Teleoperation, FPV, etc.
 - Replacing a professional system where low error matters
-  - Timebay has reasonably low error, but with 3 sectors ~30ms of error can matter a lot in professional events
+  - Timebay has reasonably low error, but with 3 sectors ~9ms of error can matter a lot in professional events
 - Data Collection
   - Timebay is currently designed for online data collection only, no logging is available (this could be added if required)
 
@@ -56,7 +56,7 @@ Set up:
 2. Place and power all sensor nodes around the circuit, ordered so that they are passed in ascending order (skipping numbers is fine, like 1,2,4,6)
    1. If sensor nodes are not in order, then the system will assume the vehicle is cutting track
    2. Ensure all sensors have a solid object within 10m, so they can properly zero
-   3. Ensure all sensors have at least 20cm between them and the passing vehicle
+   3. Ensure all sensors have at least 20cm between the object the sensor is hitting and the vehicle
    4. Ensure laps will take greater than 2s, else the debouncing on the sensor nodes will cause the vehicle to be ignored
 3. Connect your computer to the Ethernet port on the gateway node
 4. Run the TUI with `timebay_tui 192.168.0.1`
