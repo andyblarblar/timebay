@@ -1,6 +1,6 @@
 # CAD
 
-![](Timebay Node Box.png)
+![Box](Timebay%20Node%20Box.png)
 
 This directory holds the CAD files for the boxes used to hold nodes.
 
